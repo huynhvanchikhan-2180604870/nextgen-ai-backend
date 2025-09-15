@@ -2,22 +2,34 @@ import { create } from "express-handlebars";
 import nodemailer from "nodemailer";
 import path from "path";
 import { fileURLToPath } from "url";
-import { logError } from "../config/logger.js";
-import { mockEmailService } from "./mockEmailService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Check if we have real email credentials
-const hasRealEmailCredentials =
-  process.env.EMAIL_USER &&
-  process.env.EMAIL_PASS &&
-  process.env.EMAIL_USER !== "test@gmail.com" &&
-  process.env.EMAIL_PASS !== "test-password";
+// Function to check if we have real email credentials (called dynamically)
+const hasRealEmailCredentials = () => {
+  return !!(
+    process.env.EMAIL_USER &&
+    process.env.EMAIL_PASS &&
+    process.env.EMAIL_HOST &&
+    process.env.EMAIL_PORT
+  );
+};
+
+// Function to log email configuration (called dynamically)
+const logEmailConfiguration = () => {
+  console.log("📧 Email Configuration:", {
+    hasCredentials: hasRealEmailCredentials(),
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    user: process.env.EMAIL_USER ? "✅ Set" : "❌ Missing",
+    pass: process.env.EMAIL_PASS ? "✅ Set" : "❌ Missing",
+  });
+};
 
 // Create email transporter
 const createTransporter = () => {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,
     secure: process.env.EMAIL_PORT == 465, // true for 465, false for other ports
@@ -82,34 +94,78 @@ export const sendEmail = async (to, subject, template, data = {}) => {
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log(`Email sent successfully: ${result.messageId}`);
-    return result;
+    console.log(`✅ Email sent successfully: ${result.messageId} to ${to}`);
+    return {
+      success: true,
+      messageId: result.messageId,
+    };
   } catch (error) {
-    console.error("Email sending error:", error);
-    logError(error);
-    throw new Error("Failed to send email");
+    console.error("❌ Email sending failed:", error.message);
+    console.error("📧 Email details:", { to, subject, template });
+    return {
+      success: false,
+      error: error.message || "Failed to send email",
+    };
   }
 };
 
 // Send OTP email
 export const sendOTPEmail = async (email, otp, fullName) => {
-  // Use mock service if no real email credentials
-  if (!hasRealEmailCredentials) {
-    return await mockEmailService.sendOTPEmail(email, otp);
-  }
+  try {
+    // Log email configuration when function is called
+    logEmailConfiguration();
 
-  return sendEmail(email, "🔐 NextGenAI - Xác thực OTP", templates.otp, {
-    fullName,
-    otp,
-    textContent: `Mã OTP của bạn là: ${otp}. Mã này có hiệu lực trong 5 phút.`,
-  });
+    if (!hasRealEmailCredentials()) {
+      console.error("❌ No email credentials configured!");
+      return {
+        success: false,
+        error:
+          "Email service not configured. Please set EMAIL_USER, EMAIL_PASS, EMAIL_HOST, EMAIL_PORT",
+      };
+    }
+
+    console.log(`📧 Sending OTP email to: ${email}`);
+    const result = await sendEmail(
+      email,
+      "🔐 NextGenAI - Xác thực OTP",
+      templates.otp,
+      {
+        fullName,
+        otp,
+        verificationUrl: `${
+          process.env.FRONTEND_URL || "http://localhost:3000"
+        }/auth/verify-otp`,
+        textContent: `Mã OTP của bạn là: ${otp}. Mã này có hiệu lực trong 5 phút.`,
+      }
+    );
+
+    if (result.success) {
+      console.log(`✅ OTP email sent successfully to ${email}`);
+    } else {
+      console.error(`❌ Failed to send OTP email to ${email}:`, result.error);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("❌ OTP email error:", error.message);
+    return {
+      success: false,
+      error: error.message || "Failed to send OTP email",
+    };
+  }
 };
 
 // Send welcome email
 export const sendWelcomeEmail = async (email, fullName) => {
-  // Use mock service if no real email credentials
-  if (!hasRealEmailCredentials) {
-    return await mockEmailService.sendWelcomeEmail(email, fullName);
+  // Log email configuration when function is called
+  logEmailConfiguration();
+
+  if (!hasRealEmailCredentials()) {
+    console.error("❌ No email credentials configured!");
+    return {
+      success: false,
+      error: "Email service not configured",
+    };
   }
 
   return sendEmail(
@@ -118,6 +174,12 @@ export const sendWelcomeEmail = async (email, fullName) => {
     templates.welcome,
     {
       fullName,
+      marketplaceUrl: `${
+        process.env.FRONTEND_URL || "http://localhost:3000"
+      }/explore`,
+      dashboardUrl: `${
+        process.env.FRONTEND_URL || "http://localhost:3000"
+      }/dashboard`,
       textContent: `Chào mừng ${fullName} đến với NextGenAI! Tài khoản của bạn đã được xác thực thành công.`,
     }
   );

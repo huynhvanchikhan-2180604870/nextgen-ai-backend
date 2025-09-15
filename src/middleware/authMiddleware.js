@@ -5,6 +5,9 @@ import User from "../models/User.js";
 export const protect = async (req, res, next) => {
   let token;
 
+  console.log("🔒 Auth middleware - Headers:", req.headers.authorization);
+  console.log("🔒 Auth middleware - URL:", req.originalUrl);
+
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
@@ -12,6 +15,10 @@ export const protect = async (req, res, next) => {
     try {
       // Get token from header
       token = req.headers.authorization.split(" ")[1];
+      console.log("🔒 Token extracted:", token?.substring(0, 50) + "...");
+      console.log("🔒 Token length:", token?.length);
+      console.log("🔒 Token starts with:", token?.substring(0, 10));
+      console.log("🔒 Token ends with:", token?.substring(token.length - 10));
 
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);

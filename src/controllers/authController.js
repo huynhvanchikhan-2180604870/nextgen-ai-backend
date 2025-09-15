@@ -180,6 +180,15 @@ export const login = async (req, res) => {
     const token = generateToken({ id: user._id });
     const refreshToken = generateRefreshToken({ id: user._id });
 
+    console.log("🔐 Generated access token:", token?.substring(0, 50) + "...");
+    console.log(
+      "🔐 Generated refresh token:",
+      refreshToken?.substring(0, 50) + "..."
+    );
+    console.log("🔐 Token length:", token?.length);
+    console.log("🔐 Token starts with:", token?.substring(0, 10));
+    console.log("🔐 Token ends with:", token?.substring(token.length - 10));
+
     res.json({
       success: true,
       data: {

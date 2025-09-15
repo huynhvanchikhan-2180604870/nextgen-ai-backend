@@ -4,72 +4,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{title}} - NextGenAI</title>
     <style>
+      @import
+      url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
       * { margin: 0; padding: 0; box-sizing: border-box; } body { font-family:
-      'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color:
-      #333; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh; padding: 20px; } .email-container { max-width: 600px;
-      margin: 0 auto; background: rgba(255, 255, 255, 0.95); border-radius:
-      20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); backdrop-filter:
-      blur(10px); overflow: hidden; } .header { background:
-      linear-gradient(135deg, #00ff88 0%, #00d4aa 100%); padding: 30px;
-      text-align: center; position: relative; } .header::before { content: '';
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0; background:
-      url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0
-      0 100 100"><defs><pattern id="grid" width="10" height="10"
-      patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none"
-      stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect
-      width="100" height="100" fill="url(%23grid)"/></svg>'); opacity: 0.3; }
-      .logo { font-size: 32px; font-weight: bold; color: white; text-shadow: 0
-      2px 4px rgba(0, 0, 0, 0.3); position: relative; z-index: 1; } .content {
-      padding: 40px 30px; } .greeting { font-size: 24px; color: #2d3748;
-      margin-bottom: 20px; font-weight: 600; } .message { font-size: 16px;
-      color: #4a5568; margin-bottom: 30px; line-height: 1.8; } .cta-button {
-      display: inline-block; background: linear-gradient(135deg, #00ff88 0%,
-      #00d4aa 100%); color: white; padding: 15px 30px; text-decoration: none;
-      border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 10px
-      20px rgba(0, 255, 136, 0.3); transition: all 0.3s ease; margin: 20px 0; }
-      .cta-button:hover { transform: translateY(-2px); box-shadow: 0 15px 30px
-      rgba(0, 255, 136, 0.4); } .otp-code { background: linear-gradient(135deg,
-      #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius:
-      15px; text-align: center; margin: 30px 0; font-size: 32px; font-weight:
-      bold; letter-spacing: 5px; box-shadow: 0 10px 20px rgba(102, 126, 234,
-      0.3); } .info-box { background: #f7fafc; border-left: 4px solid #00ff88;
-      padding: 20px; margin: 20px 0; border-radius: 0 10px 10px 0; } .footer {
-      background: #2d3748; color: white; padding: 30px; text-align: center; }
-      .footer p { margin-bottom: 10px; opacity: 0.8; } .social-links { margin:
-      20px 0; } .social-links a { color: #00ff88; text-decoration: none; margin:
-      0 10px; font-size: 18px; } .divider { height: 1px; background:
-      linear-gradient(90deg, transparent, #e2e8f0, transparent); margin: 30px 0;
-      } @media (max-width: 600px) { .email-container { margin: 10px;
-      border-radius: 15px; } .header, .content, .footer { padding: 20px; }
-      .greeting { font-size: 20px; } .otp-code { font-size: 24px;
-      letter-spacing: 3px; } }
+      'Inter', sans-serif; background: linear-gradient(135deg, #0a0a0a 0%,
+      #1a1a2e 25%, #16213e 50%, #0f3460 75%, #0a0a0a 100%); min-height: 100vh;
+      color: #ffffff; line-height: 1.6; } .email-container { max-width: 600px;
+      margin: 0 auto; background: rgba(255, 255, 255, 0.05); backdrop-filter:
+      blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius:
+      20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0
+      1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
+      .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 30px 20px; text-align: center; position: relative; overflow:
+      hidden; } .header::before { content: ''; position: absolute; top: -50%;
+      left: -50%; width: 200%; height: 200%; background: radial-gradient(circle,
+      rgba(255, 255, 255, 0.1) 0%, transparent 70%); animation: rotate 20s
+      linear infinite; } @keyframes rotate { 0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); } } .logo { font-family: 'Orbitron',
+      monospace; font-size: 32px; font-weight: 900; color: #ffffff; text-shadow:
+      0 0 20px rgba(255, 255, 255, 0.5); margin-bottom: 10px; position:
+      relative; z-index: 1; } .tagline { font-size: 14px; color: rgba(255, 255,
+      255, 0.8); font-weight: 300; position: relative; z-index: 1; } .content {
+      padding: 40px 30px; background: rgba(255, 255, 255, 0.02); } .content h1 {
+      font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 700;
+      color: #667eea; margin-bottom: 20px; text-align: center; text-shadow: 0 0
+      10px rgba(102, 126, 234, 0.3); } .content h2 { font-family: 'Orbitron',
+      monospace; font-size: 20px; font-weight: 600; color: #764ba2; margin: 25px
+      0 15px 0; text-shadow: 0 0 8px rgba(118, 75, 162, 0.3); } .content p {
+      font-size: 16px; color: #e0e0e0; margin-bottom: 15px; line-height: 1.7; }
+      .otp-code { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff; font-family: 'Orbitron', monospace; font-size: 36px;
+      font-weight: 900; text-align: center; padding: 20px; border-radius: 15px;
+      margin: 25px 0; letter-spacing: 8px; text-shadow: 0 0 20px rgba(255, 255,
+      255, 0.5); box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3), inset 0 1px 0
+      rgba(255, 255, 255, 0.2); animation: glow 2s ease-in-out infinite
+      alternate; } @keyframes glow { from { box-shadow: 0 10px 30px rgba(102,
+      126, 234, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); } to { box-shadow:
+      0 15px 40px rgba(102, 126, 234, 0.5), inset 0 1px 0 rgba(255, 255, 255,
+      0.3); } } .button { display: inline-block; background:
+      linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff;
+      text-decoration: none; padding: 15px 30px; border-radius: 25px;
+      font-weight: 600; font-size: 16px; text-align: center; margin: 20px 0;
+      transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(102, 126, 234,
+      0.3); border: 1px solid rgba(255, 255, 255, 0.1); } .button:hover {
+      transform: translateY(-2px); box-shadow: 0 12px 35px rgba(102, 126, 234,
+      0.4); } .info-box { background: rgba(102, 126, 234, 0.1); border: 1px
+      solid rgba(102, 126, 234, 0.3); border-radius: 15px; padding: 20px;
+      margin: 20px 0; backdrop-filter: blur(10px); } .info-box h3 { font-family:
+      'Orbitron', monospace; color: #667eea; font-size: 16px; margin-bottom:
+      10px; display: flex; align-items: center; } .info-box ul { list-style:
+      none; padding-left: 0; } .info-box li { color: #e0e0e0; margin-bottom:
+      8px; padding-left: 20px; position: relative; } .info-box li::before {
+      content: '✦'; position: absolute; left: 0; color: #667eea; font-weight:
+      bold; } .footer { background: rgba(0, 0, 0, 0.3); padding: 30px 20px;
+      text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+      .footer p { color: #a0a0a0; font-size: 14px; margin-bottom: 10px; }
+      .social-links { margin: 20px 0; } .social-links a { display: inline-block;
+      margin: 0 10px; color: #667eea; text-decoration: none; font-size: 18px;
+      transition: color 0.3s ease; } .social-links a:hover { color: #764ba2; }
+      .stars { position: absolute; width: 100%; height: 100%; overflow: hidden;
+      pointer-events: none; } .star { position: absolute; background: #ffffff;
+      border-radius: 50%; animation: twinkle 3s ease-in-out infinite; }
+      .star:nth-child(1) { top: 20%; left: 10%; width: 2px; height: 2px;
+      animation-delay: 0s; } .star:nth-child(2) { top: 30%; left: 80%; width:
+      1px; height: 1px; animation-delay: 1s; } .star:nth-child(3) { top: 60%;
+      left: 20%; width: 3px; height: 3px; animation-delay: 2s; }
+      .star:nth-child(4) { top: 80%; left: 70%; width: 1px; height: 1px;
+      animation-delay: 0.5s; } .star:nth-child(5) { top: 40%; left: 50%; width:
+      2px; height: 2px; animation-delay: 1.5s; } @keyframes twinkle { 0%, 100% {
+      opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform:
+      scale(1.2); } } @media (max-width: 600px) { .email-container { margin:
+      10px; border-radius: 15px; } .content { padding: 30px 20px; } .logo {
+      font-size: 24px; } .content h1 { font-size: 24px; } .otp-code { font-size:
+      28px; letter-spacing: 6px; } }
     </style>
   </head>
   <body>
     <div class="email-container">
+      <div class="stars">
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+      </div>
+
       <div class="header">
-        <div class="logo">🚀 NextGenAI</div>
+        <div class="logo">NextGenAI</div>
+        <div class="tagline">Space Tech Universe</div>
       </div>
 
       <div class="content">
         {{{body}}}
       </div>
 
-      <div class="divider"></div>
-
       <div class="footer">
-        <p><strong>NextGenAI</strong>
-          - Nền tảng mã nguồn và AI Planner hàng đầu</p>
-        <p>© {{year}} NextGenAI. Tất cả quyền được bảo lưu.</p>
-
+        <p>🚀 Khám phá vũ trụ công nghệ với NextGenAI</p>
         <div class="social-links">
-          <a href="{{appUrl}}">🌐 Website</a>
-          <a href="mailto:{{supportEmail}}">📧 Hỗ trợ</a>
+          <a href="#">🌐 Website</a>
+          <a href="#">📧 Support</a>
+          <a href="#">💬 Community</a>
         </div>
-
-        <p style="font-size: 12px; opacity: 0.6;">
-          Email này được gửi tự động, vui lòng không trả lời.
+        <p style="font-size: 12px; color: #666;">
+          © 2024 NextGenAI. Tất cả quyền được bảo lưu.
         </p>
       </div>
     </div>
