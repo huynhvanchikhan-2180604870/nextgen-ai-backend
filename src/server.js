@@ -36,12 +36,13 @@ const app = express();
 const server = createServer(app);
 
 // Trust proxy for rate limiting (required for Render deployment)
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 const io = new Server(server, {
   cors: {
     origin: [
       process.env.FRONTEND_URL || "http://localhost:3000",
       "https://nextgen-ai-client-gvkbcly0j.vercel.app",
+      "https://nextgen-ai-client-9efouelzz.vercel.app", // New Vercel domain
       "https://*.vercel.app",
     ],
     methods: ["GET", "POST"],
@@ -79,7 +80,8 @@ app.use(
     origin: [
       process.env.FRONTEND_URL || "http://localhost:3000",
       process.env.ADMIN_URL || "http://localhost:3001",
-      "https://nextgen-ai-client-gvkbcly0j.vercel.app", // Vercel production domain
+      "https://nextgen-ai-client-gvkbcly0j.vercel.app", // Old Vercel domain
+      "https://nextgen-ai-client-9efouelzz.vercel.app", // New Vercel domain
       "https://*.vercel.app", // Allow all Vercel preview deployments
     ],
     credentials: true,
