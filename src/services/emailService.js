@@ -40,6 +40,14 @@ const createTransporter = () => {
     tls: {
       rejectUnauthorized: false,
     },
+    connectionTimeout: 30000, // 30 seconds
+    greetingTimeout: 30000,   // 30 seconds
+    socketTimeout: 30000,     // 30 seconds
+    pool: true,               // Use connection pooling
+    maxConnections: 5,        // Max connections in pool
+    maxMessages: 100,         // Max messages per connection
+    rateDelta: 20000,         // Rate limiting
+    rateLimit: 5,             // Max 5 emails per rateDelta
   });
 };
 
@@ -65,9 +73,10 @@ const templates = {
   systemAnnouncement: "system-announcement",
 };
 
-// Send email with template
-export const sendEmail = async (to, subject, template, data = {}) => {
+// Send email with template and retry logic
+export const sendEmail = async (to, subject, template, data = {}, retryCount = 0) => {
   try {
+    console.log(`📧 Sending email attempt ${retryCount + 1} to: ${to}`);
     const transporter = createTransporter();
 
     // Render email template
@@ -100,8 +109,21 @@ export const sendEmail = async (to, subject, template, data = {}) => {
       messageId: result.messageId,
     };
   } catch (error) {
-    console.error("❌ Email sending failed:", error.message);
+    console.error(`❌ Email sending failed (attempt ${retryCount + 1}): ${error.message}`);
     console.error("📧 Email details:", { to, subject, template });
+    
+    // Retry logic for connection timeout errors
+    if (
+      (error.message.includes("Connection timeout") || 
+       error.message.includes("ECONNRESET") ||
+       error.message.includes("ETIMEDOUT")) && 
+      retryCount < 2
+    ) {
+      console.log(`🔄 Retrying email in 3 seconds... (${retryCount + 1}/2)`);
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      return sendEmail(to, subject, template, data, retryCount + 1);
+    }
+    
     return {
       success: false,
       error: error.message || "Failed to send email",

@@ -34,6 +34,9 @@ dotenv.config();
 
 const app = express();
 const server = createServer(app);
+
+// Trust proxy for rate limiting (required for Render deployment)
+app.set('trust proxy', 1);
 const io = new Server(server, {
   cors: {
     origin: [
@@ -153,7 +156,6 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 const WS_PORT = process.env.WS_PORT || 5001;
 console.log("📧 Email Configuration:", {
-  
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
   user: process.env.EMAIL_USER ? "✅ Set" : "❌ Missing",
