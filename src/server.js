@@ -39,12 +39,7 @@ const server = createServer(app);
 app.set("trust proxy", 1);
 const io = new Server(server, {
   cors: {
-    origin: [
-      process.env.FRONTEND_URL || "http://localhost:3000",
-      "https://nextgen-ai-client-gvkbcly0j.vercel.app",
-      "https://nextgen-ai-client-9efouelzz.vercel.app", // New Vercel domain
-      "https://*.vercel.app",
-    ],
+    origin: true, // Allow all origins for testing
     methods: ["GET", "POST"],
   },
 });
@@ -74,31 +69,25 @@ app.use(
 // Data sanitization
 app.use(sanitizeData());
 
-// CORS configuration
+// CORS configuration - OPEN FOR TESTING
 app.use(
   cors({
-    origin: [
-      process.env.FRONTEND_URL || "http://localhost:3000",
-      process.env.ADMIN_URL || "http://localhost:3001",
-      "https://nextgen-ai-client-gvkbcly0j.vercel.app", // Old Vercel domain
-      "https://nextgen-ai-client-9efouelzz.vercel.app", // New Vercel domain
-      "https://*.vercel.app", // Allow all Vercel preview deployments
-    ],
+    origin: true, // Allow all origins for testing
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   })
 );
 
-// Rate limiting
-app.use(apiRateLimit);
+// Rate limiting - DISABLED FOR TESTING
+// app.use(apiRateLimit);
 
-// Specific rate limits for auth routes
-app.use("/api/v1/auth", authRateLimit);
+// Specific rate limits for auth routes - DISABLED FOR TESTING
+// app.use("/api/v1/auth", authRateLimit);
 
-// Strict rate limit for sensitive operations
-app.use("/api/v1/wallet", strictRateLimit);
-app.use("/api/v1/ai-planner", strictRateLimit);
+// Strict rate limit for sensitive operations - DISABLED FOR TESTING
+// app.use("/api/v1/wallet", strictRateLimit);
+// app.use("/api/v1/ai-planner", strictRateLimit);
 
 // Body parsing middleware
 app.use(compression());
