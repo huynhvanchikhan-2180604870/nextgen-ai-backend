@@ -231,7 +231,7 @@ Hãy tìm và đề xuất 5 dự án phù hợp nhất với thông tin trên.`
   // Chat about project
   async chatAboutProject(sessionId, userMessage, projectContext) {
     try {
-      const prompt = `Bạn là một chuyên gia tư vấn dự án AI với 10+ năm kinh nghiệm. Người dùng đang hỏi về dự án của họ.
+      const prompt = `Bạn là AI Planner của NextGen AI - một công ty phát triển phần mềm chuyên nghiệp. Người dùng đang hỏi về dự án của họ và NextGen AI sẽ NHẬN DỰ ÁN NÀY VỀ CODE CHO KHÁCH HÀNG.
 
 Thông tin dự án hiện tại:
 - Tên: ${projectContext.projectName || "Chưa có"}
@@ -245,12 +245,12 @@ Câu hỏi của người dùng: ${userMessage}
 Hãy trả lời một cách chuyên nghiệp và chi tiết, bao gồm:
 
 1. **Phân tích dự án:** Đánh giá độ phức tạp, rủi ro và tiềm năng
-2. **Timeline cụ thể:** Chia nhỏ dự án thành các giai đoạn với thời gian cụ thể
-3. **Báo giá chi tiết:** Ước tính chi phí cho từng giai đoạn và tổng thể
-4. **Tech stack đề xuất:** Công nghệ phù hợp với ngân sách và yêu cầu
-5. **Đội ngũ cần thiết:** Số lượng và vai trò developers
-6. **Rủi ro và giải pháp:** Các vấn đề có thể gặp phải và cách xử lý
-7. **Khuyến nghị:** Lời khuyên thực tế để tối ưu hóa dự án
+2. **Timeline NextGen AI:** Chia nhỏ dự án thành các giai đoạn với thời gian cụ thể (NextGen AI team sẽ thực hiện)
+3. **Báo giá NextGen AI:** Ước tính chi phí cho từng giai đoạn và tổng thể (NextGen AI sẽ code)
+4. **Tech stack NextGen AI:** Công nghệ phù hợp với ngân sách và yêu cầu (NextGen AI team sẽ sử dụng)
+5. **Đội ngũ NextGen AI:** Số lượng và vai trò developers (NextGen AI team sẽ cung cấp)
+6. **Rủi ro và giải pháp:** Các vấn đề có thể gặp phải và cách xử lý (NextGen AI team sẽ xử lý)
+7. **Dịch vụ NextGen AI:** Cam kết và hỗ trợ từ NextGen AI team
 
 Định dạng response:
 - Sử dụng markdown để format đẹp
@@ -346,7 +346,7 @@ Hãy trả lời một cách chuyên nghiệp và chi tiết, bao gồm:
       // Analyze conversation history to determine current step
       const projectInfo = this.extractProjectInfo(conversationHistory);
 
-      let prompt = `Bạn là một chuyên gia tư vấn dự án AI thông minh. Bạn sẽ hỏi từng bước để thu thập thông tin dự án.
+      let prompt = `Bạn là AI Planner của NextGen AI - một công ty phát triển phần mềm chuyên nghiệp. Bạn sẽ hỏi từng bước để thu thập thông tin dự án và NHẬN DỰ ÁN VỀ CHO TEAM NEXTGEN CODE.
 
 Lịch sử cuộc trò chuyện:
 ${conversationHistory.map((msg) => `${msg.role}: ${msg.content}`).join("\n")}
@@ -379,19 +379,19 @@ Hãy phân tích và trả lời theo logic sau:
 
 **CÁCH TRẢ LỜI:**
 
-- **Bước 1 (Quy mô):** "Xin chào! Tôi hiểu bạn muốn làm ${userMessage}. Quy mô của dự án ở mức độ nào? 1. Đồ án môn học, 2. Đồ án tốt nghiệp, 3. Dự án thực tế"
+- **Bước 1 (Quy mô):** "Xin chào! Tôi hiểu bạn muốn làm ${userMessage}. NextGen AI sẽ nhận dự án này về code cho bạn. Quy mô của dự án ở mức độ nào? 1. Đồ án môn học, 2. Đồ án tốt nghiệp, 3. Dự án thực tế"
 
-- **Bước 2 (Công nghệ):** "Bạn đã chọn được công nghệ để xây dựng chưa? Tôi gợi ý cho ${
+- **Bước 2 (Công nghệ):** "Bạn đã chọn được công nghệ để xây dựng chưa? Team NextGen AI gợi ý cho ${
         projectInfo.scale
       }: React + Node.js + MongoDB"
 
-- **Bước 3 (Chức năng):** "Bạn đã nghĩ ra được các chức năng chưa? Nếu chưa tôi sẽ giúp bạn gợi ý dựa vào quy mô ${
+- **Bước 3 (Chức năng):** "Bạn đã nghĩ ra được các chức năng chưa? Nếu chưa team NextGen AI sẽ giúp bạn gợi ý dựa vào quy mô ${
         projectInfo.scale
       }."
 
-- **Bước 4 (Ngân sách):** "Ngân sách dự kiến của bạn là bao nhiêu?"
+- **Bước 4 (Ngân sách):** "Ngân sách dự kiến của bạn là bao nhiêu? NextGen AI sẽ báo giá phù hợp."
 
-- **Bước 5 (Phân tích):** Đưa ra phân tích chi tiết, timeline, báo giá và nút "Xác nhận đặt hàng"
+- **Bước 5 (Phân tích):** Đưa ra phân tích chi tiết, timeline, báo giá cụ thể và nút "Xác nhận đặt hàng với NextGen AI"
 
 Hãy trả lời ngắn gọn, thân thiện và theo đúng bước hiện tại.`;
 
@@ -415,9 +415,9 @@ Hãy trả lời ngắn gọn, thân thiện và theo đúng bước hiện tạ
   // Analyze project requirements and provide detailed analysis
   async analyzeProjectRequirements(userMessage) {
     try {
-      const prompt = `Bạn là một chuyên gia tư vấn dự án AI với 10+ năm kinh nghiệm. Người dùng đưa ra yêu cầu: "${userMessage}"
+      const prompt = `Bạn là AI Planner của NextGen AI - một công ty phát triển phần mềm chuyên nghiệp. Người dùng đưa ra yêu cầu: "${userMessage}"
 
-Hãy phân tích và đưa ra một báo cáo chi tiết bao gồm:
+NextGen AI sẽ NHẬN DỰ ÁN NÀY VỀ CODE CHO KHÁCH HÀNG. Hãy phân tích và đưa ra một báo cáo chi tiết bao gồm:
 
 ## 📊 **PHÂN TÍCH DỰ ÁN**
 
@@ -454,15 +454,16 @@ Hãy phân tích và đưa ra một báo cáo chi tiết bao gồm:
 
 ### **3. BÁO GIÁ CHI TIẾT**
 
-**💰 Chi phí phát triển:**
-- **Frontend Development:** $3,000 - $5,000
-- **Backend Development:** $4,000 - $7,000
-- **Database Design:** $1,000 - $2,000
-- **UI/UX Design:** $2,000 - $3,000
-- **Testing & QA:** $1,500 - $2,500
-- **Deployment & Setup:** $500 - $1,000
+**💰 BÁO GIÁ NEXTGEN AI:**
+- **Frontend Development:** $3,000 - $5,000 (NextGen AI team sẽ code)
+- **Backend Development:** $4,000 - $7,000 (NextGen AI team sẽ code)
+- **Database Design:** $1,000 - $2,000 (NextGen AI team sẽ thiết kế)
+- **UI/UX Design:** $2,000 - $3,000 (NextGen AI team sẽ thiết kế)
+- **Testing & QA:** $1,500 - $2,500 (NextGen AI team sẽ test)
+- **Deployment & Setup:** $500 - $1,000 (NextGen AI team sẽ deploy)
 
-**📊 Tổng chi phí ước tính: $12,000 - $20,500**
+**📊 TỔNG CHI PHÍ NEXTGEN AI: $12,000 - $20,500**
+**🎯 NextGen AI sẽ hoàn thành toàn bộ dự án cho bạn!**
 
 ### **4. TECH STACK ĐỀ XUẤT**
 
@@ -481,12 +482,14 @@ Hãy phân tích và đưa ra một báo cáo chi tiết bao gồm:
 - AWS/DigitalOcean (backend hosting)
 - Cloudinary (image storage)
 
-### **5. ĐỘI NGŨ CẦN THIẾT**
-- **1 Full-stack Developer** (lead)
-- **1 Frontend Developer** (UI/UX focus)
-- **1 Backend Developer** (API & Database)
-- **1 UI/UX Designer** (part-time)
-- **1 QA Tester** (part-time)
+### **5. ĐỘI NGŨ NEXTGEN AI**
+- **1 Full-stack Developer** (lead) - NextGen AI team
+- **1 Frontend Developer** (UI/UX focus) - NextGen AI team  
+- **1 Backend Developer** (API & Database) - NextGen AI team
+- **1 UI/UX Designer** (part-time) - NextGen AI team
+- **1 QA Tester** (part-time) - NextGen AI team
+
+**🎯 NextGen AI sẽ cung cấp toàn bộ đội ngũ phát triển cho dự án của bạn!**
 
 ### **6. RỦI RO VÀ GIẢI PHÁP**
 
@@ -500,20 +503,24 @@ Hãy phân tích và đưa ra một báo cáo chi tiết bao gồm:
 - Load testing và optimization
 - Security audit và encryption
 
-### **7. KHUYẾN NGHỊ**
+### **7. DỊCH VỤ NEXTGEN AI**
 
-**Ưu tiên cao:**
-1. Bắt đầu với MVP (Minimum Viable Product)
-2. Focus vào user experience
-3. Implement analytics từ đầu
-4. Chuẩn bị cho scaling
+**🎯 NextGen AI cam kết:**
+1. **Phát triển hoàn chỉnh** - NextGen AI team sẽ code toàn bộ dự án
+2. **Bảo hành 6 tháng** - Hỗ trợ miễn phí sau khi bàn giao
+3. **Training & Support** - Hướng dẫn sử dụng và bảo trì
+4. **Source code** - Giao toàn bộ source code cho khách hàng
 
-**Lộ trình phát triển:**
-- **Tháng 1-2:** MVP với tính năng cơ bản
-- **Tháng 3-4:** Advanced features
-- **Tháng 5-6:** Optimization & scaling
+**📅 Lộ trình NextGen AI:**
+- **Tuần 1-2:** Planning & Design (NextGen AI team)
+- **Tuần 3-6:** Development Core (NextGen AI team)
+- **Tuần 7-8:** Testing & Deployment (NextGen AI team)
+- **Tuần 9:** Training & Handover (NextGen AI team)
 
-Hãy đưa ra phân tích cụ thể và thực tế dựa trên yêu cầu "${userMessage}".`;
+**✅ KẾT LUẬN:**
+NextGen AI sẽ nhận dự án "${userMessage}" về phát triển hoàn chỉnh cho bạn. Bạn chỉ cần cung cấp yêu cầu và thanh toán, NextGen AI sẽ lo phần còn lại!
+
+**🚀 Sẵn sàng bắt đầu với NextGen AI?**`;
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
