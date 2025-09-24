@@ -1,0 +1,313 @@
+{
+  "info": {
+    "name": "NextGenAI Categories API",
+    "description": "API collection for managing categories in NextGenAI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "your-admin-jwt-token-here",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login as Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@nextgenai.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category - All",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"All\",\n  \"description\": \"All projects and templates\",\n  \"icon\": \"🌟\",\n  \"color\": \"#3B82F6\",\n  \"sortOrder\": 0,\n  \"metadata\": {\n    \"seoTitle\": \"All Projects - NextGenAI\",\n    \"seoDescription\": \"Browse all projects and templates\",\n    \"keywords\": [\"all\", \"projects\", \"templates\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category - React",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"React\",\n  \"description\": \"React.js projects, components, and templates\",\n  \"icon\": \"⚛️\",\n  \"color\": \"#61DAFB\",\n  \"sortOrder\": 1,\n  \"metadata\": {\n    \"seoTitle\": \"React Projects - NextGenAI\",\n    \"seoDescription\": \"Discover React.js projects, components, and templates\",\n    \"keywords\": [\"react\", \"javascript\", \"frontend\", \"components\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category - Vue",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Vue\",\n  \"description\": \"Vue.js projects, components, and templates\",\n  \"icon\": \"💚\",\n  \"color\": \"#4FC08D\",\n  \"sortOrder\": 2,\n  \"metadata\": {\n    \"seoTitle\": \"Vue.js Projects - NextGenAI\",\n    \"seoDescription\": \"Explore Vue.js projects, components, and templates\",\n    \"keywords\": [\"vue\", \"javascript\", \"frontend\", \"components\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category - Angular",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Angular\",\n  \"description\": \"Angular projects, components, and templates\",\n  \"icon\": \"🅰️\",\n  \"color\": \"#DD0031\",\n  \"sortOrder\": 3,\n  \"metadata\": {\n    \"seoTitle\": \"Angular Projects - NextGenAI\",\n    \"seoDescription\": \"Find Angular projects, components, and templates\",\n    \"keywords\": [\"angular\", \"typescript\", \"frontend\", \"components\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category - Node.js",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Node.js\",\n  \"description\": \"Node.js backend projects, APIs, and server templates\",\n  \"icon\": \"🟢\",\n  \"color\": \"#339933\",\n  \"sortOrder\": 4,\n  \"metadata\": {\n    \"seoTitle\": \"Node.js Projects - NextGenAI\",\n    \"seoDescription\": \"Discover Node.js backend projects, APIs, and server templates\",\n    \"keywords\": [\"nodejs\", \"backend\", \"api\", \"server\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category - Python",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Python\",\n  \"description\": \"Python projects, scripts, and applications\",\n  \"icon\": \"🐍\",\n  \"color\": \"#3776AB\",\n  \"sortOrder\": 5,\n  \"metadata\": {\n    \"seoTitle\": \"Python Projects - NextGenAI\",\n    \"seoDescription\": \"Explore Python projects, scripts, and applications\",\n    \"keywords\": [\"python\", \"backend\", \"automation\", \"data-science\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category - AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"AI\",\n  \"description\": \"AI and Machine Learning projects, models, and tools\",\n  \"icon\": \"🤖\",\n  \"color\": \"#8B5CF6\",\n  \"sortOrder\": 6,\n  \"metadata\": {\n    \"seoTitle\": \"AI Projects - NextGenAI\",\n    \"seoDescription\": \"Discover AI and Machine Learning projects, models, and tools\",\n    \"keywords\": [\"ai\", \"machine-learning\", \"ml\", \"artificial-intelligence\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category - Mobile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mobile\",\n  \"description\": \"Mobile app projects, React Native, Flutter, and native apps\",\n  \"icon\": \"📱\",\n  \"color\": \"#EC4899\",\n  \"sortOrder\": 7,\n  \"metadata\": {\n    \"seoTitle\": \"Mobile App Projects - NextGenAI\",\n    \"seoDescription\": \"Find mobile app projects, React Native, Flutter, and native apps\",\n    \"keywords\": [\"mobile\", \"react-native\", \"flutter\", \"ios\", \"android\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category - Web",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Web\",\n  \"description\": \"Web development projects, websites, and web applications\",\n  \"icon\": \"🌐\",\n  \"color\": \"#06B6D4\",\n  \"sortOrder\": 8,\n  \"metadata\": {\n    \"seoTitle\": \"Web Development Projects - NextGenAI\",\n    \"seoDescription\": \"Explore web development projects, websites, and web applications\",\n    \"keywords\": [\"web\", \"website\", \"html\", \"css\", \"javascript\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", "stats"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
