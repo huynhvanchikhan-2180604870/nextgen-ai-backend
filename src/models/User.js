@@ -148,7 +148,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 userSchema.methods.generateOTP = function () {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   this.otpCode = otp;
-  this.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+  this.otpExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
   return otp;
 };
 
