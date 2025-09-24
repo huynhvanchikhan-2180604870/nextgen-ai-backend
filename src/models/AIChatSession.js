@@ -13,12 +13,12 @@ const aiChatSessionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "inactive", "expired"],
+      enum: ["active", "completed", "expired"],
       default: "active",
     },
     messages: [
       {
-        type: {
+        role: {
           type: String,
           enum: ["user", "ai"],
           required: true,

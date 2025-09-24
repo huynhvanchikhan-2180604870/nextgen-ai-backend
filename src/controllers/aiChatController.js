@@ -23,9 +23,10 @@ export const createAIChatSession = asyncHandler(async (req, res) => {
     });
   }
 
-  // Create new session
+  // Create new session with auto-generated sessionId
   const session = await AIChatSession.create({
     user: req.user._id,
+    sessionId: `chat_${req.user._id}_${Date.now()}`,
   });
 
   res.status(201).json({
@@ -138,10 +139,12 @@ export const sendAIMessage = asyncHandler(async (req, res) => {
     console.error("AI response generation error:", error);
 
     // Add error message
-    await session.addMessage(
-      "ai",
-      "Xin lỗi, tôi gặp sự cố kỹ thuật. Vui lòng thử lại sau."
-    );
+    session.messages.push({
+      role: "ai",
+      content: "Xin lỗi, tôi gặp sự cố kỹ thuật. Vui lòng thử lại sau.",
+      timestamp: new Date(),
+    });
+    await session.save();
 
     res.status(500).json({
       success: false,
@@ -169,7 +172,7 @@ export const getSessionMessages = asyncHandler(async (req, res) => {
     });
   }
 
-  const messages = session.getRecentMessages(parseInt(limit));
+  const messages = session.messages.slice(-parseInt(limit));
   const paginatedMessages = messages.slice(parseInt(offset));
 
   res.json({
@@ -200,7 +203,7 @@ export const endAIChatSession = asyncHandler(async (req, res) => {
     });
   }
 
-  session.status = "inactive";
+  session.status = "completed";
   await session.save();
 
   res.json({
@@ -218,10 +221,10 @@ export const getUserAIChatSessions = asyncHandler(async (req, res) => {
   const sessions = await AIChatSession.find({
     user: req.user._id,
   })
-    .sort({ lastActivity: -1 })
+    .sort({ updatedAt: -1 })
     .limit(limit * 1)
     .skip((page - 1) * limit)
-    .select("sessionId status lastActivity messages");
+    .select("sessionId status updatedAt messages");
 
   const total = await AIChatSession.countDocuments({
     user: req.user._id,
