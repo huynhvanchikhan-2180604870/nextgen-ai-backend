@@ -231,9 +231,9 @@ Hãy tìm và đề xuất 5 dự án phù hợp nhất với thông tin trên.`
   // Chat about project
   async chatAboutProject(sessionId, userMessage, projectContext) {
     try {
-      const prompt = `Bạn là một chuyên gia tư vấn dự án AI. Người dùng đang hỏi về dự án của họ.
+      const prompt = `Bạn là một chuyên gia tư vấn dự án AI với 10+ năm kinh nghiệm. Người dùng đang hỏi về dự án của họ.
 
-Thông tin dự án:
+Thông tin dự án hiện tại:
 - Tên: ${projectContext.projectName || "Chưa có"}
 - Mô tả: ${projectContext.description || "Chưa có"}
 - Yêu cầu: ${projectContext.requirements?.join(", ") || "Chưa có"}
@@ -242,7 +242,22 @@ Thông tin dự án:
 
 Câu hỏi của người dùng: ${userMessage}
 
-Hãy trả lời một cách chuyên nghiệp, hữu ích và cụ thể. Đưa ra lời khuyên thực tế và có thể thực hiện được.`;
+Hãy trả lời một cách chuyên nghiệp và chi tiết, bao gồm:
+
+1. **Phân tích dự án:** Đánh giá độ phức tạp, rủi ro và tiềm năng
+2. **Timeline cụ thể:** Chia nhỏ dự án thành các giai đoạn với thời gian cụ thể
+3. **Báo giá chi tiết:** Ước tính chi phí cho từng giai đoạn và tổng thể
+4. **Tech stack đề xuất:** Công nghệ phù hợp với ngân sách và yêu cầu
+5. **Đội ngũ cần thiết:** Số lượng và vai trò developers
+6. **Rủi ro và giải pháp:** Các vấn đề có thể gặp phải và cách xử lý
+7. **Khuyến nghị:** Lời khuyên thực tế để tối ưu hóa dự án
+
+Định dạng response:
+- Sử dụng markdown để format đẹp
+- Đưa ra số liệu cụ thể (thời gian, chi phí, số người)
+- Phân tích chi tiết từng khía cạnh
+- Đưa ra timeline và milestone rõ ràng
+- Báo giá theo từng giai đoạn phát triển`;
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
@@ -262,6 +277,126 @@ Hãy trả lời một cách chuyên nghiệp, hữu ích và cụ thể. Đưa 
       return {
         success: false,
         error: "Failed to generate chat response",
+      };
+    }
+  },
+
+  // Analyze project requirements and provide detailed analysis
+  async analyzeProjectRequirements(userMessage) {
+    try {
+      const prompt = `Bạn là một chuyên gia tư vấn dự án AI với 10+ năm kinh nghiệm. Người dùng đưa ra yêu cầu: "${userMessage}"
+
+Hãy phân tích và đưa ra một báo cáo chi tiết bao gồm:
+
+## 📊 **PHÂN TÍCH DỰ ÁN**
+
+### **1. Đánh giá tổng quan**
+- **Loại dự án:** [Xác định loại dự án]
+- **Độ phức tạp:** [Thấp/Trung bình/Cao] với lý do
+- **Thị trường mục tiêu:** [Phân tích thị trường]
+- **Tiềm năng thương mại:** [Đánh giá khả năng sinh lời]
+
+### **2. TIMELINE CHI TIẾT**
+**Giai đoạn 1: Planning & Design (2-3 tuần)**
+- Phân tích yêu cầu chi tiết
+- Thiết kế UI/UX
+- Lựa chọn công nghệ
+- Thiết kế database
+
+**Giai đoạn 2: Development Core (4-6 tuần)**
+- Phát triển backend API
+- Xây dựng frontend
+- Tích hợp database
+- Testing cơ bản
+
+**Giai đoạn 3: Features & Integration (3-4 tuần)**
+- Tính năng nâng cao
+- Tích hợp thanh toán
+- SEO optimization
+- Security implementation
+
+**Giai đoạn 4: Testing & Deployment (2-3 tuần)**
+- Testing toàn diện
+- Performance optimization
+- Deployment
+- Documentation
+
+### **3. BÁO GIÁ CHI TIẾT**
+
+**💰 Chi phí phát triển:**
+- **Frontend Development:** $3,000 - $5,000
+- **Backend Development:** $4,000 - $7,000
+- **Database Design:** $1,000 - $2,000
+- **UI/UX Design:** $2,000 - $3,000
+- **Testing & QA:** $1,500 - $2,500
+- **Deployment & Setup:** $500 - $1,000
+
+**📊 Tổng chi phí ước tính: $12,000 - $20,500**
+
+### **4. TECH STACK ĐỀ XUẤT**
+
+**Frontend:**
+- React.js + Next.js (SEO friendly)
+- Tailwind CSS (styling)
+- Redux/Zustand (state management)
+
+**Backend:**
+- Node.js + Express.js
+- MongoDB/PostgreSQL (database)
+- JWT (authentication)
+
+**Infrastructure:**
+- Vercel/Netlify (frontend hosting)
+- AWS/DigitalOcean (backend hosting)
+- Cloudinary (image storage)
+
+### **5. ĐỘI NGŨ CẦN THIẾT**
+- **1 Full-stack Developer** (lead)
+- **1 Frontend Developer** (UI/UX focus)
+- **1 Backend Developer** (API & Database)
+- **1 UI/UX Designer** (part-time)
+- **1 QA Tester** (part-time)
+
+### **6. RỦI RO VÀ GIẢI PHÁP**
+
+**Rủi ro cao:**
+- Thay đổi yêu cầu trong quá trình phát triển
+- Vấn đề về hiệu năng với lượng người dùng lớn
+- Bảo mật dữ liệu khách hàng
+
+**Giải pháp:**
+- Agile development với sprint 2 tuần
+- Load testing và optimization
+- Security audit và encryption
+
+### **7. KHUYẾN NGHỊ**
+
+**Ưu tiên cao:**
+1. Bắt đầu với MVP (Minimum Viable Product)
+2. Focus vào user experience
+3. Implement analytics từ đầu
+4. Chuẩn bị cho scaling
+
+**Lộ trình phát triển:**
+- **Tháng 1-2:** MVP với tính năng cơ bản
+- **Tháng 3-4:** Advanced features
+- **Tháng 5-6:** Optimization & scaling
+
+Hãy đưa ra phân tích cụ thể và thực tế dựa trên yêu cầu "${userMessage}".`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      return {
+        success: true,
+        response: text,
+      };
+    } catch (error) {
+      logError(error);
+      return {
+        success: false,
+        error: "Failed to analyze project requirements",
       };
     }
   },
