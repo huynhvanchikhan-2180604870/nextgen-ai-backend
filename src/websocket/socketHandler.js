@@ -43,8 +43,10 @@ export const setupWebSocket = (io) => {
     socket.join(`user:${socket.userId}`);
 
     // Handle AI Planner session events
-    socket.on("join_ai_session", async (sessionId) => {
+    socket.on("join_ai_session", async (data) => {
       try {
+        // Extract sessionId from data object
+        const sessionId = typeof data === "string" ? data : data.sessionId;
         console.log(
           `🔍 Attempting to join AI session: ${sessionId} for user: ${socket.userId}`
         );
