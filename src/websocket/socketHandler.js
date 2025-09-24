@@ -122,11 +122,17 @@ export const setupWebSocket = (io) => {
 
         // Generate AI response
         try {
-          const aiResponse = await aiService.chatAboutProject(
+          const aiResult = await aiService.chatAboutProject(
             sessionId,
             message,
             { messages: session.messages }
           );
+
+          // Extract the actual response content
+          const aiResponse =
+            typeof aiResult === "string"
+              ? aiResult
+              : aiResult.response || aiResult;
 
           // Add AI response to session
           session.messages.push({
