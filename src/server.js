@@ -14,14 +14,12 @@ import swaggerSetup from "./config/swagger.js";
 import "./jobs/cronJobs.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 import {
-  apiRateLimit,
-  authRateLimit,
   sanitizeData,
   securityHeaders,
-  strictRateLimit,
 } from "./middleware/securityMiddleware.js";
 import aiPlannerRoutes from "./routes/aiPlannerRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -47,7 +45,7 @@ const io = new Server(server, {
 // Connect to MongoDB
 connectDB();
 
-// Connect to Redis
+// Connect to Memory Cache (Redis replacement)
 connectRedis();
 
 // Security middleware
@@ -129,6 +127,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use(`/api/${API_VERSION}/auth`, authRoutes);
+app.use(`/api/${API_VERSION}/categories`, categoryRoutes);
 app.use(`/api/${API_VERSION}/projects`, projectRoutes);
 app.use(`/api/${API_VERSION}/ai-planner`, aiPlannerRoutes);
 app.use(`/api/${API_VERSION}/wallet`, walletRoutes);

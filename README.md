@@ -72,7 +72,7 @@ Backend API cho NextGenAI - Nền tảng bán mã nguồn và AI Planner hàng �
 - **Express.js** - Web framework
 - **MongoDB** - Database
 - **Mongoose** - ODM
-- **Redis** - Caching & sessions
+- **Memory Cache** - In-memory caching & sessions
 - **Socket.IO** - Real-time communication
 
 ### Authentication & Security
@@ -85,8 +85,8 @@ Backend API cho NextGenAI - Nền tảng bán mã nguồn và AI Planner hàng �
 
 ### AI & Machine Learning
 
-- **OpenAI GPT-4** - AI project planning
-- **Natural language processing** - Chat functionality
+- **Google Gemini** - AI project planning and chat functionality
+- **Natural language processing** - Advanced AI capabilities
 
 ### Payment Processing
 
@@ -121,7 +121,7 @@ Backend API cho NextGenAI - Nền tảng bán mã nguồn và AI Planner hàng �
 
 - **Node.js** 18+
 - **MongoDB** 5.0+
-- **Redis** 6.0+ (optional but recommended)
+- **Memory Cache** (built-in, no external service needed)
 - **Git**
 
 ### Installation
@@ -177,9 +177,7 @@ PORT=5000
 # Database
 MONGODB_URI=mongodb://localhost:27017/nextgen-ai
 
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
+# Memory Cache (no configuration needed)
 
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
@@ -190,8 +188,8 @@ EMAIL_HOST=smtp.gmail.com
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASS=your-app-password
 
-# OpenAI
-OPENAI_API_KEY=your-openai-api-key
+# AI Configuration
+GEMINI_API_KEY=AIzaSyABoPIFxN29VegcjENIiwJ1-Z9fv21hiBg
 
 # Payment Gateways
 STRIPE_SECRET_KEY=sk_test_...
@@ -299,7 +297,7 @@ npm run docker:compose
 
 - **API Server** - Node.js application
 - **MongoDB** - Database
-- **Redis** - Cache & sessions
+- **Memory Cache** - In-memory cache & sessions
 - **Nginx** - Reverse proxy
 
 ## 📊 Monitoring & Logging
@@ -318,7 +316,7 @@ npm run docker:compose
 
 - `GET /health` - Server health
 - Database connection check
-- Redis connection check
+- Memory cache status check
 - External service status
 
 ## 🔧 Development
@@ -352,15 +350,14 @@ npm run db:reset
 
 1. Set `NODE_ENV=production`
 2. Configure production database
-3. Set up Redis cluster
-4. Configure payment gateways
-5. Set up email service
-6. Configure file storage
-7. Set up monitoring
+3. Configure payment gateways
+4. Set up email service
+5. Configure file storage
+6. Set up monitoring
 
 ### Performance Optimization
 
-- Enable Redis caching
+- Enable memory caching
 - Configure CDN for static files
 - Set up load balancing
 - Enable compression

@@ -62,6 +62,11 @@ const projectSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: [true, "Category is required"],
+    },
     productType: {
       type: String,
       enum: [

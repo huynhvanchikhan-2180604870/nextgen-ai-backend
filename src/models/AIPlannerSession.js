@@ -10,7 +10,6 @@ const aiPlannerSessionSchema = new mongoose.Schema(
     sessionId: {
       type: String,
       required: [true, "Session ID is required"],
-      unique: true,
     },
     status: {
       type: String,

@@ -80,25 +80,27 @@ cron.schedule("0 4 * * 0", async () => {
   }
 });
 
-// Clear Redis cache every day at 5 AM
+// Clear memory cache every day at 5 AM
 cron.schedule("0 5 * * *", async () => {
   try {
-    console.log("🧹 Clearing Redis cache...");
+    console.log("🧹 Clearing memory cache...");
 
     // Clear old cache entries (keep recent ones)
-    const keys = await cache.redis.keys("*");
+    const keys = await cache.keys("*");
     const oldKeys = keys.filter((key) => {
       // Clear cache older than 24 hours
       return key.includes(":") && !key.includes("session:");
     });
 
     if (oldKeys.length > 0) {
-      await cache.redis.del(...oldKeys);
+      for (const key of oldKeys) {
+        await cache.del(key);
+      }
       console.log(`✅ Cleared ${oldKeys.length} old cache entries`);
     }
   } catch (error) {
     logError(error);
-    console.error("❌ Failed to clear Redis cache:", error);
+    console.error("❌ Failed to clear memory cache:", error);
   }
 });
 
@@ -165,7 +167,7 @@ cron.schedule("*/5 * * * *", async () => {
     // Check database connection
     await User.findOne().limit(1);
 
-    // Check Redis connection
+    // Check memory cache connection
     await cache.get("health_check");
     await cache.set("health_check", Date.now(), 60);
 

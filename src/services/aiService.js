@@ -1,28 +1,19 @@
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { logAI, logError } from "../config/logger.js";
 import Project from "../models/Project.js";
-import { mockAiService } from "./mockAiService.js";
 
-// Initialize OpenAI with mock key if not provided
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "mock-key-for-development",
-});
+// Initialize Gemini with API key
+const genAI = new GoogleGenerativeAI(
+  process.env.GEMINI_API_KEY || "AIzaSyABoPIFxN29VegcjENIiwJ1-Z9fv21hiBg"
+);
 
-// Check if we have a real OpenAI API key
-const hasRealApiKey =
-  process.env.OPENAI_API_KEY &&
-  process.env.OPENAI_API_KEY !== "test-key" &&
-  process.env.OPENAI_API_KEY !== "mock-key-for-development";
+// Get the generative model
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 // AI Service for project planning and recommendations
 export const aiService = {
   // Generate project plan
   async generateProjectPlan(projectDetails) {
-    // Use mock service if no real API key
-    if (!hasRealApiKey) {
-      return await mockAiService.generateProjectPlan(projectDetails);
-    }
-
     try {
       const {
         projectName,
@@ -34,187 +25,154 @@ export const aiService = {
         complexity,
       } = projectDetails;
 
-      const systemPrompt = `You are an expert AI project planning assistant. Your task is to create a comprehensive project plan based on the user's requirements.
+      const prompt = `Bạn là một chuyên gia AI lập kế hoạch dự án. Nhiệm vụ của bạn là tạo ra một kế hoạch dự án toàn diện dựa trên yêu cầu của người dùng.
 
-Guidelines:
-1. Provide realistic estimates for time, cost, and complexity
-2. Break down the project into logical phases
-3. Suggest appropriate technology stack
-4. Identify potential risks and mitigation strategies
-5. Provide actionable recommendations
-6. Consider the budget and timeline constraints
-7. Format the response as structured JSON
+Thông tin dự án:
+- Tên dự án: ${projectName}
+- Mô tả: ${description}
+- Yêu cầu: ${requirements?.join(", ") || "Không có"}
+- Ngân sách: $${budget || "Chưa xác định"}
+- Thời gian: ${timeline || "Chưa xác định"}
+- Công nghệ ưa thích: ${techPreferences?.join(", ") || "Không có"}
+- Độ phức tạp: ${complexity || "Trung bình"}
 
-Response format:
+Hướng dẫn:
+1. Cung cấp ước tính thực tế về thời gian, chi phí và độ phức tạp
+2. Chia nhỏ dự án thành các giai đoạn logic
+3. Đề xuất stack công nghệ phù hợp
+4. Xác định rủi ro tiềm ẩn và chiến lược giảm thiểu
+5. Cung cấp khuyến nghị có thể thực hiện
+6. Xem xét ràng buộc ngân sách và thời gian
+7. Định dạng phản hồi dưới dạng JSON có cấu trúc
+
+Định dạng phản hồi:
 {
   "overview": {
-    "projectName": "string",
-    "estimatedCost": number,
-    "estimatedTime": "string",
-       "complexity": "string",
-    "successRate": number
+    "projectName": "Tên dự án",
+    "estimatedCost": 50000,
+    "estimatedTime": "6 tháng",
+    "complexity": "Cao",
+    "successRate": 85
   },
   "phases": [
     {
-      "id": number,
-      "name": "string",
-      "duration": "string",
-      "cost": number,
-      "tasks": ["string"],
-      "deliverables": ["string"]
+      "id": 1,
+      "name": "Giai đoạn 1",
+      "duration": "2 tháng",
+      "cost": 20000,
+      "tasks": ["Nhiệm vụ 1", "Nhiệm vụ 2"],
+      "deliverables": ["Sản phẩm 1", "Sản phẩm 2"]
     }
   ],
   "techStack": {
-    "frontend": ["string"],
-    "backend": ["string"],
-    "database": ["string"],
-    "deployment": ["string"],
-    "tools": ["string"]
+    "frontend": ["React", "TypeScript"],
+    "backend": ["Node.js", "Express"],
+    "database": ["MongoDB"],
+    "deployment": ["Docker", "AWS"]
   },
   "recommendations": [
     {
-      "title": "string",
-      "matchPercentage": number,
-      "price": number,
-      "reason": "string"
-    }
-  ],
-  "estimatedROI": {
-    "investment": number,
-    "projectedRevenue": number,
-    "breakEvenTime": "string"
-  },
-  "risks": [
-    {
-      "type": "string",
-      "description": "string",
-      "mitigation": "string",
-      "probability": "string"
-    }
-  ],
-  "alternatives": [
-    {
-      "name": "string",
-      "description": "string",
-      "pros": ["string"],
-      "cons": ["string"],
-      "cost": number
+      "projectId": "id_dự_án",
+      "title": "Tên dự án",
+      "matchPercentage": 85,
+      "price": 299,
+      "thumbnail": "url_hình_ảnh",
+      "reason": "Lý do khuyến nghị"
     }
   ]
 }`;
 
-      const userPrompt = `Create a comprehensive project plan for:
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
 
-Project Name: ${projectName}
-Description: ${description}
-Requirements: ${requirements.join(", ")}
-Budget: $${budget || "Not specified"}
-Timeline: ${timeline || "Not specified"}
-Tech Preferences: ${techPreferences?.join(", ") || "None specified"}
-Complexity: ${complexity || "medium"}
-
-Please provide a detailed, realistic project plan that considers all the given constraints and requirements.`;
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.7,
-        max_tokens: 3000,
-      });
-
-      const response = completion.choices[0].message.content;
-      let aiPlan;
-
+      // Parse JSON response
+      let plan;
       try {
-        aiPlan = JSON.parse(response);
+        plan = JSON.parse(text);
       } catch (parseError) {
         // If JSON parsing fails, create a structured response
-        aiPlan = {
+        plan = {
           overview: {
-            projectName,
-            estimatedCost: budget || 5000,
-            estimatedTime: timeline || "3 months",
-            complexity: complexity || "medium",
-            successRate: 85,
+            projectName: projectName,
+            estimatedCost: budget || 50000,
+            estimatedTime: timeline || "6 tháng",
+            complexity: complexity || "Trung bình",
+            successRate: 80,
           },
           phases: [
             {
               id: 1,
-              name: "Planning & Design",
-              duration: "2 weeks",
-              cost: 800,
-              tasks: ["UI/UX Design", "Database Design", "API Planning"],
-              deliverables: ["Wireframes", "Database Schema"],
+              name: "Giai đoạn 1: Phân tích và thiết kế",
+              duration: "1-2 tháng",
+              cost: (budget || 50000) * 0.3,
+              tasks: [
+                "Phân tích yêu cầu",
+                "Thiết kế hệ thống",
+                "Tạo wireframe",
+              ],
+              deliverables: [
+                "Tài liệu phân tích",
+                "Thiết kế UI/UX",
+                "Kiến trúc hệ thống",
+              ],
             },
             {
               id: 2,
-              name: "Development",
-              duration: "6 weeks",
-              cost: 3000,
+              name: "Giai đoạn 2: Phát triển",
+              duration: "2-3 tháng",
+              cost: (budget || 50000) * 0.5,
               tasks: [
-                "Frontend Development",
-                "Backend Development",
-                "Integration",
+                "Phát triển frontend",
+                "Phát triển backend",
+                "Tích hợp API",
               ],
-              deliverables: ["Working Application", "API Documentation"],
+              deliverables: [
+                "Ứng dụng hoàn chỉnh",
+                "API documentation",
+                "Test cases",
+              ],
             },
             {
               id: 3,
-              name: "Testing & Deployment",
-              duration: "2 weeks",
-              cost: 1200,
-              tasks: ["Testing", "Bug Fixes", "Deployment"],
-              deliverables: ["Production Application", "User Manual"],
+              name: "Giai đoạn 3: Testing và triển khai",
+              duration: "1 tháng",
+              cost: (budget || 50000) * 0.2,
+              tasks: ["Testing", "Bug fixing", "Deployment"],
+              deliverables: [
+                "Ứng dụng production",
+                "User manual",
+                "Maintenance plan",
+              ],
             },
           ],
           techStack: {
-            frontend: techPreferences || ["React", "Tailwind CSS"],
-            backend: ["Node.js", "Express"],
-            database: ["MongoDB"],
-            deployment: ["AWS", "Docker"],
-            tools: ["Git", "VS Code", "Postman"],
+            frontend: techPreferences?.includes("React")
+              ? ["React", "TypeScript", "Tailwind CSS"]
+              : ["Vue.js", "JavaScript", "CSS3"],
+            backend: ["Node.js", "Express.js", "JWT"],
+            database: ["MongoDB", "Redis"],
+            deployment: ["Docker", "AWS", "Nginx"],
           },
           recommendations: [],
-          estimatedROI: {
-            investment: budget || 5000,
-            projectedRevenue: (budget || 5000) * 3,
-            breakEvenTime: "6 months",
-          },
-          risks: [
-            {
-              type: "Technical",
-              description: "Complex integration challenges",
-              mitigation: "Thorough testing and prototyping",
-              probability: "Medium",
-            },
-          ],
-          alternatives: [],
         };
       }
 
-      // Get project recommendations
-      aiPlan.recommendations = await this.getProjectRecommendations(
-        projectDetails
-      );
-
       logAI("project_plan_generated", null, null, {
         projectName,
-        complexity,
-        phases: aiPlan.phases?.length || 0,
+        phases: plan.phases?.length || 0,
+        recommendations: plan.recommendations?.length || 0,
       });
 
       return {
         success: true,
-        plan: aiPlan,
+        plan,
       };
     } catch (error) {
       logError(error);
       return {
         success: false,
-        error: error.message,
+        error: "Failed to generate project plan",
       };
     }
   },
@@ -222,125 +180,88 @@ Please provide a detailed, realistic project plan that considers all the given c
   // Get project recommendations
   async getProjectRecommendations(projectDetails) {
     try {
-      const { techPreferences, requirements, budget } = projectDetails;
+      const { techStack, productType, budget } = projectDetails;
 
-      // Build search query for similar projects
-      const searchQuery = {
+      const prompt = `Dựa trên thông tin dự án, hãy đề xuất các dự án tương tự từ cơ sở dữ liệu:
+
+Thông tin dự án:
+- Công nghệ: ${techStack?.join(", ") || "Không có"}
+- Loại sản phẩm: ${productType || "Không có"}
+- Ngân sách: $${budget || "Không giới hạn"}
+
+Hãy tìm và đề xuất 5 dự án phù hợp nhất với thông tin trên.`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      // Get actual projects from database
+      const projects = await Project.find({
         status: "published",
-        $or: [],
-      };
-
-      if (techPreferences && techPreferences.length > 0) {
-        searchQuery.$or.push({
-          techStack: { $in: techPreferences },
-        });
-      }
-
-      if (requirements && requirements.length > 0) {
-        searchQuery.$or.push({
-          $text: { $search: requirements.join(" ") },
-        });
-      }
-
-      if (budget) {
-        searchQuery.price = { $lte: budget * 1.2 }; // Allow 20% over budget
-      }
-
-      // Find similar projects
-      const projects = await Project.find(searchQuery)
-        .select("title thumbnail price rating techStack description")
+        ...(techStack && { techStack: { $in: techStack } }),
+        ...(productType && { productType }),
+        ...(budget && { price: { $lte: budget } }),
+      })
+        .select("title description price thumbnail techStack rating")
         .limit(5)
-        .sort({ "rating.average": -1, purchaseCount: -1 });
+        .sort({ "rating.average": -1 });
 
-      const recommendations = projects.map((project) => {
-        // Calculate match percentage based on tech stack overlap
-        let matchPercentage = 0;
-        if (techPreferences && project.techStack) {
-          const commonTech = techPreferences.filter((tech) =>
-            project.techStack.some((stack) =>
-              stack.toLowerCase().includes(tech.toLowerCase())
-            )
-          );
-          matchPercentage = Math.round(
-            (commonTech.length / techPreferences.length) * 100
-          );
-        }
-
-        return {
-          projectId: project._id,
-          title: project.title,
-          matchPercentage: Math.max(matchPercentage, 30), // Minimum 30% match
-          price: project.price,
-          thumbnail: project.thumbnail,
-          reason: `Similar tech stack and requirements. ${project.rating.count} reviews with ${project.rating.average} stars.`,
-        };
-      });
-
-      return recommendations;
-    } catch (error) {
-      logError(error);
-      return [];
-    }
-  },
-
-  // Chat with AI about project
-  async chatAboutProject(sessionId, userMessage, projectContext) {
-    // Use mock service if no real API key
-    if (!hasRealApiKey) {
-      return await mockAiService.chatAboutProject(
-        sessionId,
-        userMessage,
-        projectContext
-      );
-    }
-
-    try {
-      const systemPrompt = `You are an AI project planning assistant. You help users refine their project plans and answer questions about development.
-
-Context about the current project:
-- Project Name: ${projectContext.projectName}
-- Description: ${projectContext.description}
-- Requirements: ${projectContext.requirements?.join(", ") || "Not specified"}
-- Budget: $${projectContext.budget || "Not specified"}
-- Timeline: ${projectContext.timeline || "Not specified"}
-- Tech Preferences: ${
-        projectContext.techPreferences?.join(", ") || "Not specified"
-      }
-
-Guidelines:
-1. Be helpful and provide practical advice
-2. Ask clarifying questions when needed
-3. Suggest improvements to the project plan
-4. Provide code examples when relevant
-5. Keep responses concise but informative
-6. Focus on actionable insights`;
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage },
-        ],
-        temperature: 0.7,
-        max_tokens: 1000,
-      });
-
-      const response = completion.choices[0].message.content;
-
-      logAI("project_chat", null, sessionId, {
-        messageLength: userMessage.length,
-        responseLength: response.length,
-      });
+      const recommendations = projects.map((project, index) => ({
+        projectId: project._id,
+        title: project.title,
+        matchPercentage: 90 - index * 10,
+        price: project.price,
+        thumbnail: project.thumbnail,
+        reason: `Phù hợp với công nghệ ${project.techStack.join(", ")}`,
+      }));
 
       return {
         success: true,
-        response,
+        recommendations,
       };
     } catch (error) {
       logError(error);
       return {
         success: false,
-        error: error.message,
+        error: "Failed to get recommendations",
+      };
+    }
+  },
+
+  // Chat about project
+  async chatAboutProject(sessionId, userMessage, projectContext) {
+    try {
+      const prompt = `Bạn là một chuyên gia tư vấn dự án AI. Người dùng đang hỏi về dự án của họ.
+
+Thông tin dự án:
+- Tên: ${projectContext.projectName || "Chưa có"}
+- Mô tả: ${projectContext.description || "Chưa có"}
+- Yêu cầu: ${projectContext.requirements?.join(", ") || "Chưa có"}
+- Ngân sách: $${projectContext.budget || "Chưa có"}
+- Thời gian: ${projectContext.timeline || "Chưa có"}
+
+Câu hỏi của người dùng: ${userMessage}
+
+Hãy trả lời một cách chuyên nghiệp, hữu ích và cụ thể. Đưa ra lời khuyên thực tế và có thể thực hiện được.`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      logAI("chat_response_generated", null, sessionId, {
+        messageLength: userMessage.length,
+        responseLength: text.length,
+      });
+
+      return {
+        success: true,
+        response: text,
+      };
+    } catch (error) {
+      logError(error);
+      return {
+        success: false,
+        error: "Failed to generate chat response",
       };
     }
   },
@@ -348,53 +269,52 @@ Guidelines:
   // Generate code suggestions
   async generateCodeSuggestions(techStack, feature, context) {
     try {
-      const systemPrompt = `You are an expert software developer. Generate code examples and suggestions for the given feature and technology stack.
+      const prompt = `Bạn là một chuyên gia lập trình. Hãy tạo code mẫu cho tính năng "${feature}" sử dụng công nghệ ${techStack.join(
+        ", "
+      )}.
 
-Guidelines:
-1. Provide clean, production-ready code
-2. Include proper error handling
-3. Add comments for clarity
-4. Follow best practices for the technology
-5. Provide multiple approaches when relevant
-6. Include setup instructions if needed`;
-
-      const userPrompt = `Generate code for: ${feature}
-
-Technology Stack: ${techStack.join(", ")}
 Context: ${context}
 
-Please provide:
-1. Code implementation
-2. Setup instructions
+Hãy cung cấp:
+1. Code mẫu hoàn chỉnh
+2. Giải thích cách hoạt động
 3. Best practices
-4. Common pitfalls to avoid`;
+4. Lưu ý quan trọng
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.3,
-        max_tokens: 2000,
-      });
+Định dạng phản hồi:
+{
+  "code": "code_mẫu",
+  "explanation": "giải_thích",
+  "bestPractices": ["practice1", "practice2"],
+  "notes": ["note1", "note2"]
+}`;
 
-      const response = completion.choices[0].message.content;
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
 
-      logAI("code_suggestions_generated", null, null, {
-        techStack: techStack.join(","),
-        feature,
-      });
+      // Try to parse JSON, fallback to plain text
+      let suggestions;
+      try {
+        suggestions = JSON.parse(text);
+      } catch (parseError) {
+        suggestions = {
+          code: text,
+          explanation: "Code suggestion generated by AI",
+          bestPractices: ["Follow coding standards", "Add error handling"],
+          notes: ["Test thoroughly", "Consider security"],
+        };
+      }
 
       return {
         success: true,
-        code: response,
+        suggestions,
       };
     } catch (error) {
       logError(error);
       return {
         success: false,
-        error: error.message,
+        error: "Failed to generate code suggestions",
       };
     }
   },
@@ -402,60 +322,49 @@ Please provide:
   // Analyze project complexity
   async analyzeProjectComplexity(projectDetails) {
     try {
-      const { requirements, techPreferences, timeline, budget } =
-        projectDetails;
+      const { requirements, techStack, timeline, budget } = projectDetails;
 
-      const systemPrompt = `Analyze the complexity of a software project based on the given requirements and constraints.
+      const prompt = `Phân tích độ phức tạp của dự án dựa trên:
 
-Return a JSON response with:
+Yêu cầu: ${requirements?.join(", ") || "Không có"}
+Công nghệ: ${techStack?.join(", ") || "Không có"}
+Thời gian: ${timeline || "Không có"}
+Ngân sách: $${budget || "Không có"}
+
+Hãy đánh giá:
+1. Độ phức tạp (Thấp/Trung bình/Cao)
+2. Rủi ro tiềm ẩn
+3. Thời gian ước tính
+4. Chi phí ước tính
+5. Khuyến nghị
+
+Định dạng phản hồi:
 {
-  "complexity": "simple|medium|complex|enterprise",
-  "confidence": number (0-100),
-  "factors": ["string"],
-  "recommendations": ["string"],
-  "estimatedEffort": "string",
-  "riskLevel": "low|medium|high"
+  "complexity": "Cao",
+  "riskLevel": "Trung bình",
+  "estimatedTime": "6-8 tháng",
+  "estimatedCost": 75000,
+  "risks": ["Rủi ro 1", "Rủi ro 2"],
+  "recommendations": ["Khuyến nghị 1", "Khuyến nghị 2"]
 }`;
 
-      const userPrompt = `Analyze this project:
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
 
-Requirements: ${requirements?.join(", ") || "Not specified"}
-Tech Stack: ${techPreferences?.join(", ") || "Not specified"}
-Timeline: ${timeline || "Not specified"}
-Budget: $${budget || "Not specified"}
-
-Provide a complexity analysis with recommendations.`;
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.3,
-        max_tokens: 1000,
-      });
-
-      const response = completion.choices[0].message.content;
       let analysis;
-
       try {
-        analysis = JSON.parse(response);
+        analysis = JSON.parse(text);
       } catch (parseError) {
         analysis = {
-          complexity: "medium",
-          confidence: 75,
-          factors: ["Standard web application", "Common tech stack"],
-          recommendations: ["Start with MVP", "Iterate based on feedback"],
-          estimatedEffort: "3-6 months",
-          riskLevel: "medium",
+          complexity: "Trung bình",
+          riskLevel: "Thấp",
+          estimatedTime: "3-4 tháng",
+          estimatedCost: budget || 50000,
+          risks: ["Thiếu kinh nghiệm", "Thay đổi yêu cầu"],
+          recommendations: ["Lập kế hoạch chi tiết", "Thường xuyên review"],
         };
       }
-
-      logAI("complexity_analyzed", null, null, {
-        complexity: analysis.complexity,
-        confidence: analysis.confidence,
-      });
 
       return {
         success: true,
@@ -465,7 +374,7 @@ Provide a complexity analysis with recommendations.`;
       logError(error);
       return {
         success: false,
-        error: error.message,
+        error: "Failed to analyze project complexity",
       };
     }
   },
@@ -473,38 +382,39 @@ Provide a complexity analysis with recommendations.`;
   // Generate project documentation
   async generateProjectDocumentation(projectPlan) {
     try {
-      const systemPrompt = `Generate comprehensive project documentation based on the project plan.
+      const prompt = `Tạo tài liệu dự án dựa trên kế hoạch:
 
-Include:
-1. Project overview
-2. Technical specifications
-3. Architecture diagrams (in text format)
-4. API documentation
-5. Deployment guide
-6. Testing strategy
-7. Maintenance plan
+${JSON.stringify(projectPlan, null, 2)}
 
-Format as structured markdown.`;
+Hãy tạo:
+1. Tài liệu tổng quan dự án
+2. Hướng dẫn triển khai
+3. Tài liệu API (nếu có)
+4. Hướng dẫn bảo trì
 
-      const userPrompt = `Generate documentation for this project plan:
+Định dạng phản hồi:
+{
+  "overview": "Tài liệu tổng quan",
+  "deployment": "Hướng dẫn triển khai",
+  "api": "Tài liệu API",
+  "maintenance": "Hướng dẫn bảo trì"
+}`;
 
-${JSON.stringify(projectPlan, null, 2)}`;
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.5,
-        max_tokens: 3000,
-      });
-
-      const documentation = completion.choices[0].message.content;
-
-      logAI("documentation_generated", null, null, {
-        sections: documentation.split("#").length - 1,
-      });
+      let documentation;
+      try {
+        documentation = JSON.parse(text);
+      } catch (parseError) {
+        documentation = {
+          overview: text,
+          deployment: "Hướng dẫn triển khai sẽ được cung cấp",
+          api: "Tài liệu API sẽ được tạo",
+          maintenance: "Hướng dẫn bảo trì sẽ được cung cấp",
+        };
+      }
 
       return {
         success: true,
@@ -514,7 +424,7 @@ ${JSON.stringify(projectPlan, null, 2)}`;
       logError(error);
       return {
         success: false,
-        error: error.message,
+        error: "Failed to generate documentation",
       };
     }
   },

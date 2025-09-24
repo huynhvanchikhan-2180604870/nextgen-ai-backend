@@ -1,68 +1,152 @@
-import Redis from "ioredis";
-import {
-  cache as mockCache,
-  connectRedis as mockConnectRedis,
-  mockRedis,
-} from "../services/mockRedisService.js";
+// Simple in-memory cache implementation
+class MemoryCache {
+  constructor() {
+    this.cache = new Map();
+    this.timers = new Map();
+  }
 
-// Check if we have real Redis credentials
-const hasRealRedis =
-  process.env.REDIS_URL &&
-  process.env.REDIS_URL !== "redis://localhost:6379" &&
-  !process.env.REDIS_URL.includes("localhost");
+  async set(key, value, ttl = 3600) {
+    // Clear existing timer if any
+    if (this.timers.has(key)) {
+      clearTimeout(this.timers.get(key));
+    }
 
-// Redis configuration
-const redisConfig = {
-  host: process.env.REDIS_HOST || "localhost",
-  port: process.env.REDIS_PORT || 6379,
-  password: process.env.REDIS_PASSWORD || undefined,
-  db: process.env.REDIS_DB || 0,
-  retryDelayOnFailover: 100,
-  maxRetriesPerRequest: 3,
-  lazyConnect: true,
-  keepAlive: 30000,
-  connectTimeout: 10000,
-  commandTimeout: 5000,
-};
+    // Set the value
+    this.cache.set(key, value);
 
-// Create Redis client (only if we have real Redis)
-let redis = null;
-if (hasRealRedis) {
-  redis = new Redis(redisConfig);
-} else {
-  console.log("🔧 Using Mock Redis (no real Redis server needed)");
+    // Set expiration timer
+    if (ttl > 0) {
+      const timer = setTimeout(() => {
+        this.cache.delete(key);
+        this.timers.delete(key);
+      }, ttl * 1000);
+      this.timers.set(key, timer);
+    }
+
+    return true;
+  }
+
+  async get(key) {
+    return this.cache.get(key) || null;
+  }
+
+  async del(key) {
+    if (this.timers.has(key)) {
+      clearTimeout(this.timers.get(key));
+      this.timers.delete(key);
+    }
+    return this.cache.delete(key);
+  }
+
+  async exists(key) {
+    return this.cache.has(key);
+  }
+
+  async mset(keyValuePairs, ttl = 3600) {
+    for (const [key, value] of Object.entries(keyValuePairs)) {
+      await this.set(key, value, ttl);
+    }
+    return true;
+  }
+
+  async mget(keys) {
+    return keys.map((key) => this.cache.get(key) || null);
+  }
+
+  async incr(key, ttl = 3600) {
+    const current = this.cache.get(key) || 0;
+    const newValue = parseInt(current) + 1;
+    await this.set(key, newValue, ttl);
+    return newValue;
+  }
+
+  async hset(key, field, value, ttl = 3600) {
+    const hash = this.cache.get(key) || {};
+    hash[field] = value;
+    await this.set(key, hash, ttl);
+    return true;
+  }
+
+  async hget(key, field) {
+    const hash = this.cache.get(key) || {};
+    return hash[field] || null;
+  }
+
+  async hgetall(key) {
+    return this.cache.get(key) || {};
+  }
+
+  async sadd(key, ...members) {
+    const set = this.cache.get(key) || new Set();
+    let added = 0;
+    for (const member of members) {
+      if (!set.has(member)) {
+        set.add(member);
+        added++;
+      }
+    }
+    this.cache.set(key, set);
+    return added;
+  }
+
+  async smembers(key) {
+    const set = this.cache.get(key) || new Set();
+    return Array.from(set);
+  }
+
+  async zadd(key, score, member) {
+    const sortedSet = this.cache.get(key) || new Map();
+    sortedSet.set(member, score);
+    this.cache.set(key, sortedSet);
+    return 1;
+  }
+
+  async zrange(key, start, stop, withScores = false) {
+    const sortedSet = this.cache.get(key) || new Map();
+    const entries = Array.from(sortedSet.entries())
+      .sort((a, b) => a[1] - b[1])
+      .slice(start, stop + 1);
+
+    if (withScores) {
+      return entries.flat();
+    }
+    return entries.map(([member]) => member);
+  }
+
+  async flushall() {
+    // Clear all timers
+    for (const timer of this.timers.values()) {
+      clearTimeout(timer);
+    }
+    this.timers.clear();
+    this.cache.clear();
+    return true;
+  }
+
+  async info() {
+    return {
+      memory_usage: this.cache.size,
+      connected_clients: 1,
+      uptime_in_seconds: Math.floor(process.uptime()),
+    };
+  }
+
+  async keys(pattern) {
+    const regex = new RegExp(pattern.replace(/\*/g, ".*"));
+    return Array.from(this.cache.keys()).filter((key) => regex.test(key));
+  }
 }
 
-// Redis event handlers (only for real Redis)
-if (hasRealRedis && redis) {
-  redis.on("connect", () => {
-    console.log("🔴 Redis connected successfully");
-  });
-
-  redis.on("error", (error) => {
-    console.error("Redis connection error:", error);
-  });
-
-  redis.on("close", () => {
-    console.log("Redis connection closed");
-  });
-
-  redis.on("reconnecting", () => {
-    console.log("Redis reconnecting...");
-  });
-}
+// Create memory cache instance
+const memoryCache = new MemoryCache();
 
 // Cache helper functions
 export const cache = {
   // Set cache with expiration
   async set(key, value, ttl = 3600) {
-    if (!hasRealRedis) {
-      return await mockCache.set(key, value, ttl);
-    }
-
     try {
       const serializedValue = JSON.stringify(value);
-      await redis.setex(key, ttl, serializedValue);
+      await memoryCache.setex(key, ttl, serializedValue);
       return true;
     } catch (error) {
       console.error("Cache set error:", error);
@@ -72,12 +156,8 @@ export const cache = {
 
   // Get cache
   async get(key) {
-    if (!hasRealRedis) {
-      return await mockCache.get(key);
-    }
-
     try {
-      const value = await redis.get(key);
+      const value = await memoryCache.get(key);
       return value ? JSON.parse(value) : null;
     } catch (error) {
       console.error("Cache get error:", error);
@@ -87,12 +167,8 @@ export const cache = {
 
   // Delete cache
   async del(key) {
-    if (!hasRealRedis) {
-      return await mockCache.del(key);
-    }
-
     try {
-      await redis.del(key);
+      await memoryCache.del(key);
       return true;
     } catch (error) {
       console.error("Cache delete error:", error);
@@ -103,8 +179,7 @@ export const cache = {
   // Check if key exists
   async exists(key) {
     try {
-      const result = await redis.exists(key);
-      return result === 1;
+      return await memoryCache.exists(key);
     } catch (error) {
       console.error("Cache exists error:", error);
       return false;
@@ -114,12 +189,10 @@ export const cache = {
   // Set multiple keys
   async mset(keyValuePairs, ttl = 3600) {
     try {
-      const pipeline = redis.pipeline();
       for (const [key, value] of Object.entries(keyValuePairs)) {
         const serializedValue = JSON.stringify(value);
-        pipeline.setex(key, ttl, serializedValue);
+        await memoryCache.set(key, serializedValue, ttl);
       }
-      await pipeline.exec();
       return true;
     } catch (error) {
       console.error("Cache mset error:", error);
@@ -130,7 +203,7 @@ export const cache = {
   // Get multiple keys
   async mget(keys) {
     try {
-      const values = await redis.mget(keys);
+      const values = await memoryCache.mget(keys);
       return values.map((value) => (value ? JSON.parse(value) : null));
     } catch (error) {
       console.error("Cache mget error:", error);
@@ -141,10 +214,7 @@ export const cache = {
   // Increment counter
   async incr(key, ttl = 3600) {
     try {
-      const result = await redis.incr(key);
-      if (result === 1) {
-        await redis.expire(key, ttl);
-      }
+      const result = await memoryCache.incr(key, ttl);
       return result;
     } catch (error) {
       console.error("Cache incr error:", error);
@@ -156,8 +226,7 @@ export const cache = {
   async hset(key, field, value, ttl = 3600) {
     try {
       const serializedValue = JSON.stringify(value);
-      await redis.hset(key, field, serializedValue);
-      await redis.expire(key, ttl);
+      await memoryCache.hset(key, field, serializedValue, ttl);
       return true;
     } catch (error) {
       console.error("Cache hset error:", error);
@@ -168,7 +237,7 @@ export const cache = {
   // Get hash field
   async hget(key, field) {
     try {
-      const value = await redis.hget(key, field);
+      const value = await memoryCache.hget(key, field);
       return value ? JSON.parse(value) : null;
     } catch (error) {
       console.error("Cache hget error:", error);
@@ -179,7 +248,7 @@ export const cache = {
   // Get all hash fields
   async hgetall(key) {
     try {
-      const hash = await redis.hgetall(key);
+      const hash = await memoryCache.hgetall(key);
       const result = {};
       for (const [field, value] of Object.entries(hash)) {
         result[field] = JSON.parse(value);
@@ -194,7 +263,7 @@ export const cache = {
   // Add to set
   async sadd(key, ...members) {
     try {
-      return await redis.sadd(key, ...members);
+      return await memoryCache.sadd(key, ...members);
     } catch (error) {
       console.error("Cache sadd error:", error);
       return 0;
@@ -204,7 +273,7 @@ export const cache = {
   // Get set members
   async smembers(key) {
     try {
-      return await redis.smembers(key);
+      return await memoryCache.smembers(key);
     } catch (error) {
       console.error("Cache smembers error:", error);
       return [];
@@ -214,7 +283,7 @@ export const cache = {
   // Add to sorted set
   async zadd(key, score, member) {
     try {
-      return await redis.zadd(key, score, member);
+      return await memoryCache.zadd(key, score, member);
     } catch (error) {
       console.error("Cache zadd error:", error);
       return 0;
@@ -224,9 +293,7 @@ export const cache = {
   // Get sorted set range
   async zrange(key, start, stop, withScores = false) {
     try {
-      const args = [key, start, stop];
-      if (withScores) args.push("WITHSCORES");
-      return await redis.zrange(...args);
+      return await memoryCache.zrange(key, start, stop, withScores);
     } catch (error) {
       console.error("Cache zrange error:", error);
       return [];
@@ -236,7 +303,7 @@ export const cache = {
   // Flush all cache
   async flushall() {
     try {
-      await redis.flushall();
+      await memoryCache.flushall();
       return true;
     } catch (error) {
       console.error("Cache flushall error:", error);
@@ -247,7 +314,7 @@ export const cache = {
   // Get cache info
   async info() {
     try {
-      return await redis.info();
+      return await memoryCache.info();
     } catch (error) {
       console.error("Cache info error:", error);
       return null;
@@ -307,7 +374,7 @@ export const cacheMiddleware = (keyGenerator, ttl = 3600) => {
   };
 };
 
-// Rate limiting with Redis
+// Rate limiting with memory cache
 export const rateLimit = {
   async checkLimit(identifier, limit, window) {
     try {
@@ -349,18 +416,10 @@ export const rateLimit = {
   },
 };
 
-// Connect to Redis
+// Connect to memory cache (no-op for compatibility)
 export const connectRedis = async () => {
-  if (!hasRealRedis) {
-    return await mockConnectRedis();
-  }
-
-  try {
-    await redis.connect();
-    console.log("🔴 Redis connected successfully");
-  } catch (error) {
-    console.error("Redis connection error:", error);
-  }
+  console.log("🔧 Using Memory Cache (no Redis server needed)");
+  return true;
 };
 
-export default hasRealRedis ? redis : mockRedis;
+export default memoryCache;
