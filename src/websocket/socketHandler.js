@@ -144,12 +144,23 @@ export const setupWebSocket = (io) => {
           await session.save();
 
           // Broadcast AI response to all users in the session
-          socket.to(`ai_session:${sessionId}`).emit("ai_message", {
+          const aiMessageData = {
             sessionId,
             message: aiResponse,
             timestamp: new Date(),
             userId: "ai",
-          });
+          };
+
+          console.log(
+            `🤖 Broadcasting AI message to session: ${sessionId}`,
+            aiMessageData
+          );
+          socket
+            .to(`ai_session:${sessionId}`)
+            .emit("ai_message", aiMessageData);
+
+          // Also send to the current socket
+          socket.emit("ai_message", aiMessageData);
 
           console.log(`🤖 AI response sent for session: ${sessionId}`);
         } catch (aiError) {
