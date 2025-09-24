@@ -281,43 +281,117 @@ Hãy trả lời một cách chuyên nghiệp và chi tiết, bao gồm:
     }
   },
 
+  // Extract project information from conversation history
+  extractProjectInfo(conversationHistory) {
+    const projectInfo = {
+      scale: null,
+      technology: null,
+      features: null,
+      budget: null,
+    };
+
+    // Look for scale information
+    for (const msg of conversationHistory) {
+      if (msg.role === "user") {
+        const content = msg.content.toLowerCase();
+        if (content.includes("1") || content.includes("đồ án môn học")) {
+          projectInfo.scale = "Đồ án môn học";
+        } else if (
+          content.includes("2") ||
+          content.includes("đồ án tốt nghiệp")
+        ) {
+          projectInfo.scale = "Đồ án tốt nghiệp";
+        } else if (content.includes("3") || content.includes("dự án thực tế")) {
+          projectInfo.scale = "Dự án thực tế";
+        }
+
+        // Look for technology mentions
+        if (
+          content.includes("react") ||
+          content.includes("node") ||
+          content.includes("vue") ||
+          content.includes("angular")
+        ) {
+          projectInfo.technology = msg.content;
+        }
+
+        // Look for budget mentions
+        if (
+          content.includes("ngân sách") ||
+          content.includes("budget") ||
+          content.includes("tiền") ||
+          content.includes("$") ||
+          content.includes("vnd")
+        ) {
+          projectInfo.budget = msg.content;
+        }
+
+        // Look for features mentions
+        if (
+          content.includes("chức năng") ||
+          content.includes("tính năng") ||
+          content.includes("feature")
+        ) {
+          projectInfo.features = msg.content;
+        }
+      }
+    }
+
+    return projectInfo;
+  },
+
   // Smart AI conversation flow
   async smartProjectConsultation(userMessage, conversationHistory) {
     try {
       // Analyze conversation history to determine current step
-      const lastMessages = conversationHistory.slice(-3);
-      const isFirstMessage = conversationHistory.length <= 1;
+      const projectInfo = this.extractProjectInfo(conversationHistory);
 
       let prompt = `Bạn là một chuyên gia tư vấn dự án AI thông minh. Bạn sẽ hỏi từng bước để thu thập thông tin dự án.
 
 Lịch sử cuộc trò chuyện:
 ${conversationHistory.map((msg) => `${msg.role}: ${msg.content}`).join("\n")}
 
+Thông tin đã thu thập:
+- Quy mô: ${projectInfo.scale || "Chưa xác định"}
+- Công nghệ: ${projectInfo.technology || "Chưa xác định"}
+- Chức năng: ${projectInfo.features || "Chưa xác định"}
+- Ngân sách: ${projectInfo.budget || "Chưa xác định"}
+
 Tin nhắn mới nhất của user: "${userMessage}"
 
 Hãy phân tích và trả lời theo logic sau:
 
-**BƯỚC 1: Xác định quy mô dự án**
-- Nếu đây là tin nhắn đầu tiên hoặc chưa xác định quy mô
-- Hỏi: "Xin chào! Tôi hiểu bạn muốn làm ${userMessage}. Quy mô của dự án ở mức độ nào?"
-- Đưa ra 3 lựa chọn: "1. Đồ án môn học", "2. Đồ án tốt nghiệp", "3. Dự án thực tế"
+**LOGIC XỬ LÝ:**
 
-**BƯỚC 2: Hỏi về công nghệ**
-- Nếu đã xác định quy mô nhưng chưa hỏi về công nghệ
-- Hỏi: "Bạn đã chọn được công nghệ để xây dựng chưa?"
-- Gợi ý công nghệ dựa trên quy mô dự án
+1. **Nếu chưa có quy mô** (${
+        projectInfo.scale === null ? "CHƯA CÓ" : "ĐÃ CÓ"
+      }) → Hỏi về quy mô dự án
+2. **Nếu chưa có công nghệ** (${
+        projectInfo.technology === null ? "CHƯA CÓ" : "ĐÃ CÓ"
+      }) → Hỏi về công nghệ
+3. **Nếu chưa có chức năng** (${
+        projectInfo.features === null ? "CHƯA CÓ" : "ĐÃ CÓ"
+      }) → Hỏi về chức năng
+4. **Nếu chưa có ngân sách** (${
+        projectInfo.budget === null ? "CHƯA CÓ" : "ĐÃ CÓ"
+      }) → Hỏi về ngân sách
+5. **Nếu đã có đầy đủ** → Phân tích chi tiết và báo giá
 
-**BƯỚC 3: Hỏi về chức năng**
-- Nếu đã có công nghệ nhưng chưa hỏi về chức năng
-- Hỏi: "Bạn đã nghĩ ra được các chức năng chưa? Nếu chưa tôi sẽ giúp bạn gợi ý dựa vào quy mô dự án."
+**CÁCH TRẢ LỜI:**
 
-**BƯỚC 4: Hỏi về ngân sách**
-- Nếu đã có chức năng nhưng chưa hỏi về ngân sách
-- Hỏi: "Ngân sách dự kiến của bạn là bao nhiêu?"
+- **Bước 1 (Quy mô):** "Xin chào! Tôi hiểu bạn muốn làm ${userMessage}. Quy mô của dự án ở mức độ nào? 1. Đồ án môn học, 2. Đồ án tốt nghiệp, 3. Dự án thực tế"
 
-**BƯỚC 5: Phân tích và báo giá**
-- Nếu đã có đầy đủ thông tin (quy mô, công nghệ, chức năng, ngân sách)
-- Đưa ra phân tích chi tiết, timeline, báo giá và nút "Xác nhận đặt hàng"
+- **Bước 2 (Công nghệ):** "Bạn đã chọn được công nghệ để xây dựng chưa? Tôi gợi ý cho ${
+        projectInfo.scale
+      }: React + Node.js + MongoDB"
+
+- **Bước 3 (Chức năng):** "Bạn đã nghĩ ra được các chức năng chưa? Nếu chưa tôi sẽ giúp bạn gợi ý dựa vào quy mô ${
+        projectInfo.scale
+      }."
+
+- **Bước 4 (Ngân sách):** "Ngân sách dự kiến của bạn là bao nhiêu?"
+
+- **Bước 5 (Phân tích):** Đưa ra phân tích chi tiết, timeline, báo giá và nút "Xác nhận đặt hàng"
 
 Hãy trả lời ngắn gọn, thân thiện và theo đúng bước hiện tại.`;
 

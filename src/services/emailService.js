@@ -40,9 +40,9 @@ const createTransporter = () => {
     tls: {
       rejectUnauthorized: false,
     },
-    connectionTimeout: 60000, // 60 seconds
-    greetingTimeout: 60000, // 60 seconds
-    socketTimeout: 60000, // 60 seconds
+    connectionTimeout: 300000, // 5 minutes
+    greetingTimeout: 300000, // 5 minutes
+    socketTimeout: 300000, // 5 minutes
     pool: true, // Use connection pooling
     maxConnections: 5, // Max connections in pool
     maxMessages: 100, // Max messages per connection
@@ -108,14 +108,8 @@ export const sendEmail = async (
       text: data.textContent || "", // Fallback text content
     };
 
-    // Send email with timeout
-    const result = await Promise.race([
-      transporter.sendMail(mailOptions),
-      new Promise(
-        (_, reject) =>
-          setTimeout(() => reject(new Error("Email send timeout")), 120000) // 2 minutes timeout
-      ),
-    ]);
+    // Send email without timeout
+    const result = await transporter.sendMail(mailOptions);
 
     // Close transporter after sending
     transporter.close();
@@ -135,11 +129,12 @@ export const sendEmail = async (
       (error.message.includes("Connection timeout") ||
         error.message.includes("ECONNRESET") ||
         error.message.includes("ETIMEDOUT") ||
-        error.message.includes("timeout")) &&
-      retryCount < 5
+        error.message.includes("timeout") ||
+        error.message.includes("Yêu cầu quá thời gian")) &&
+      retryCount < 10
     ) {
-      console.log(`🔄 Retrying email in 5 seconds... (${retryCount + 1}/5)`);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      console.log(`🔄 Retrying email in 10 seconds... (${retryCount + 1}/10)`);
+      await new Promise((resolve) => setTimeout(resolve, 10000));
       return sendEmail(to, subject, template, data, retryCount + 1);
     }
 
