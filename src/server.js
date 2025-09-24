@@ -17,7 +17,9 @@ import {
   sanitizeData,
   securityHeaders,
 } from "./middleware/securityMiddleware.js";
+import aiChatRoutes from "./routes/aiChatRoutes.js";
 import aiPlannerRoutes from "./routes/aiPlannerRoutes.js";
+import aiProjectIdeaRoutes from "./routes/aiProjectIdeaRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
@@ -130,6 +132,8 @@ app.use(`/api/${API_VERSION}/auth`, authRoutes);
 app.use(`/api/${API_VERSION}/categories`, categoryRoutes);
 app.use(`/api/${API_VERSION}/projects`, projectRoutes);
 app.use(`/api/${API_VERSION}/ai-planner`, aiPlannerRoutes);
+app.use(`/api/${API_VERSION}/ai-chat`, aiChatRoutes);
+app.use(`/api/${API_VERSION}/ai-project-ideas`, aiProjectIdeaRoutes);
 app.use(`/api/${API_VERSION}/wallet`, walletRoutes);
 app.use(`/api/${API_VERSION}/users`, userRoutes);
 app.use(`/api/${API_VERSION}/notifications`, notificationRoutes);

@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import AIPlannerSession from "../models/AIPlannerSession.js";
+import AIChatSession from "../models/AIChatSession.js";
 import Notification from "../models/Notification.js";
 import User from "../models/User.js";
 
@@ -45,19 +45,32 @@ export const setupWebSocket = (io) => {
     // Handle AI Planner session events
     socket.on("join_ai_session", async (sessionId) => {
       try {
-        const session = await AIPlannerSession.findOne({
-          _id: sessionId,
+        console.log(
+          `🔍 Attempting to join AI session: ${sessionId} for user: ${socket.userId}`
+        );
+
+        const session = await AIChatSession.findOne({
+          sessionId: sessionId,
           user: socket.userId,
         });
+
+        console.log(`🔍 Session found:`, session ? "Yes" : "No");
 
         if (session) {
           socket.join(`ai_session:${sessionId}`);
           socket.emit("ai_session_joined", { sessionId });
+          console.log(
+            `✅ User ${socket.userId} joined AI session: ${sessionId}`
+          );
         } else {
-          socket.emit("error", { message: "Session not found" });
+          console.log(
+            `❌ Session not found for user ${socket.userId}: ${sessionId}`
+          );
+          socket.emit("ai_session_error", { message: "Session not found" });
         }
       } catch (error) {
-        socket.emit("error", { message: "Failed to join session" });
+        console.error("❌ Error joining AI session:", error);
+        socket.emit("ai_session_error", { message: "Failed to join session" });
       }
     });
 
@@ -75,6 +88,47 @@ export const setupWebSocket = (io) => {
       socket
         .to(`ai_session:${sessionId}`)
         .emit("ai_typing_stop", { sessionId });
+    });
+
+    // Handle AI chat messages
+    socket.on("ai_chat_message", async (data) => {
+      try {
+        const { sessionId, message, timestamp } = data;
+        console.log(
+          `💬 AI chat message from user ${socket.userId} in session ${sessionId}: ${message}`
+        );
+
+        // Broadcast to all users in the session
+        socket.to(`ai_session:${sessionId}`).emit("ai_message", {
+          sessionId,
+          message,
+          timestamp,
+          userId: socket.userId,
+        });
+      } catch (error) {
+        console.error("Error handling AI chat message:", error);
+        socket.emit("ai_session_error", { message: "Failed to send message" });
+      }
+    });
+
+    // Handle AI plan generation requests
+    socket.on("request_ai_plan", async (data) => {
+      try {
+        const { sessionId, projectDetails } = data;
+        console.log(
+          `📋 AI plan request from user ${socket.userId} in session ${sessionId}`
+        );
+
+        // Broadcast to all users in the session
+        socket.to(`ai_session:${sessionId}`).emit("ai_plan_requested", {
+          sessionId,
+          projectDetails,
+          userId: socket.userId,
+        });
+      } catch (error) {
+        console.error("Error handling AI plan request:", error);
+        socket.emit("ai_session_error", { message: "Failed to request plan" });
+      }
     });
 
     // Handle disconnect
