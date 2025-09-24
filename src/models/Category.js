@@ -85,7 +85,8 @@ categorySchema.virtual("projects", {
 
 // Pre-save middleware to generate slug
 categorySchema.pre("save", function (next) {
-  if (this.isModified("name") || !this.slug) {
+  // Always generate slug if name is provided and slug is missing
+  if (this.name && !this.slug) {
     this.slug = this.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
