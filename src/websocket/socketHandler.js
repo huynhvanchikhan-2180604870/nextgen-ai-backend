@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import AIChatSession from "../models/AIChatSession.js";
 import Notification from "../models/Notification.js";
 import User from "../models/User.js";
+import aiService from "../services/aiService.js";
 
 // Store active connections
 const activeConnections = new Map();
@@ -100,13 +101,62 @@ export const setupWebSocket = (io) => {
           `💬 AI chat message from user ${socket.userId} in session ${sessionId}: ${message}`
         );
 
-        // Broadcast to all users in the session
-        socket.to(`ai_session:${sessionId}`).emit("ai_message", {
-          sessionId,
-          message,
-          timestamp,
-          userId: socket.userId,
+        // Find the session
+        const session = await AIChatSession.findOne({
+          sessionId: sessionId,
+          user: socket.userId,
         });
+
+        if (!session) {
+          console.log(`❌ Session not found: ${sessionId}`);
+          socket.emit("ai_session_error", { message: "Session not found" });
+          return;
+        }
+
+        // Add user message to session
+        session.messages.push({
+          role: "user",
+          content: message,
+          timestamp: new Date(),
+        });
+
+        // Generate AI response
+        try {
+          const aiResponse = await aiService.chatAboutProject(
+            sessionId,
+            message,
+            { messages: session.messages }
+          );
+
+          // Add AI response to session
+          session.messages.push({
+            role: "ai",
+            content: aiResponse,
+            timestamp: new Date(),
+          });
+
+          await session.save();
+
+          // Broadcast AI response to all users in the session
+          socket.to(`ai_session:${sessionId}`).emit("ai_message", {
+            sessionId,
+            message: aiResponse,
+            timestamp: new Date(),
+            userId: "ai",
+          });
+
+          console.log(`🤖 AI response sent for session: ${sessionId}`);
+        } catch (aiError) {
+          console.error("AI response generation error:", aiError);
+
+          // Send error message
+          socket.to(`ai_session:${sessionId}`).emit("ai_message", {
+            sessionId,
+            message: "Xin lỗi, tôi gặp sự cố kỹ thuật. Vui lòng thử lại sau.",
+            timestamp: new Date(),
+            userId: "ai",
+          });
+        }
       } catch (error) {
         console.error("Error handling AI chat message:", error);
         socket.emit("ai_session_error", { message: "Failed to send message" });
