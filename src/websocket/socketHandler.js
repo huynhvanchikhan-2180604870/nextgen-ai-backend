@@ -122,20 +122,11 @@ export const setupWebSocket = (io) => {
 
         // Generate AI response
         try {
-          // Check if this is a new project request (short message, no previous context)
-          const isNewProjectRequest =
-            session.messages.length <= 1 && message.length < 100;
-
-          let aiResult;
-          if (isNewProjectRequest) {
-            // Use detailed analysis for new project requests
-            aiResult = await aiService.analyzeProjectRequirements(message);
-          } else {
-            // Use regular chat for ongoing conversations
-            aiResult = await aiService.chatAboutProject(sessionId, message, {
-              messages: session.messages,
-            });
-          }
+          // Use smart consultation flow for all messages
+          const aiResult = await aiService.smartProjectConsultation(
+            message,
+            session.messages
+          );
 
           // Extract the actual response content
           const aiResponse =

@@ -281,6 +281,63 @@ Hãy trả lời một cách chuyên nghiệp và chi tiết, bao gồm:
     }
   },
 
+  // Smart AI conversation flow
+  async smartProjectConsultation(userMessage, conversationHistory) {
+    try {
+      // Analyze conversation history to determine current step
+      const lastMessages = conversationHistory.slice(-3);
+      const isFirstMessage = conversationHistory.length <= 1;
+
+      let prompt = `Bạn là một chuyên gia tư vấn dự án AI thông minh. Bạn sẽ hỏi từng bước để thu thập thông tin dự án.
+
+Lịch sử cuộc trò chuyện:
+${conversationHistory.map((msg) => `${msg.role}: ${msg.content}`).join("\n")}
+
+Tin nhắn mới nhất của user: "${userMessage}"
+
+Hãy phân tích và trả lời theo logic sau:
+
+**BƯỚC 1: Xác định quy mô dự án**
+- Nếu đây là tin nhắn đầu tiên hoặc chưa xác định quy mô
+- Hỏi: "Xin chào! Tôi hiểu bạn muốn làm ${userMessage}. Quy mô của dự án ở mức độ nào?"
+- Đưa ra 3 lựa chọn: "1. Đồ án môn học", "2. Đồ án tốt nghiệp", "3. Dự án thực tế"
+
+**BƯỚC 2: Hỏi về công nghệ**
+- Nếu đã xác định quy mô nhưng chưa hỏi về công nghệ
+- Hỏi: "Bạn đã chọn được công nghệ để xây dựng chưa?"
+- Gợi ý công nghệ dựa trên quy mô dự án
+
+**BƯỚC 3: Hỏi về chức năng**
+- Nếu đã có công nghệ nhưng chưa hỏi về chức năng
+- Hỏi: "Bạn đã nghĩ ra được các chức năng chưa? Nếu chưa tôi sẽ giúp bạn gợi ý dựa vào quy mô dự án."
+
+**BƯỚC 4: Hỏi về ngân sách**
+- Nếu đã có chức năng nhưng chưa hỏi về ngân sách
+- Hỏi: "Ngân sách dự kiến của bạn là bao nhiêu?"
+
+**BƯỚC 5: Phân tích và báo giá**
+- Nếu đã có đầy đủ thông tin (quy mô, công nghệ, chức năng, ngân sách)
+- Đưa ra phân tích chi tiết, timeline, báo giá và nút "Xác nhận đặt hàng"
+
+Hãy trả lời ngắn gọn, thân thiện và theo đúng bước hiện tại.`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      return {
+        success: true,
+        response: text,
+      };
+    } catch (error) {
+      logError(error);
+      return {
+        success: false,
+        error: "Failed to generate smart consultation",
+      };
+    }
+  },
+
   // Analyze project requirements and provide detailed analysis
   async analyzeProjectRequirements(userMessage) {
     try {
