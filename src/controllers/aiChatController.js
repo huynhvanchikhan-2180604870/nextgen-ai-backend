@@ -7,7 +7,10 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 // @access  Private
 export const createAIChatSession = asyncHandler(async (req, res) => {
   // Check if user already has an active session
-  const existingSession = await AIChatSession.findActiveByUser(req.user._id);
+  const existingSession = await AIChatSession.findOne({
+    user: req.user._id,
+    status: "active",
+  });
 
   if (existingSession) {
     return res.status(200).json({
@@ -58,8 +61,9 @@ export const getAIChatSession = asyncHandler(async (req, res) => {
     data: {
       sessionId: session.sessionId,
       status: session.status,
-      messages: session.getRecentMessages(),
-      lastActivity: session.lastActivity,
+      messages: session.messages,
+      createdAt: session.createdAt,
+      updatedAt: session.updatedAt,
     },
   });
 });
@@ -92,14 +96,28 @@ export const sendAIMessage = asyncHandler(async (req, res) => {
   }
 
   // Add user message
-  await session.addMessage("user", message.trim());
+  session.messages.push({
+    role: "user",
+    content: message.trim(),
+    timestamp: new Date(),
+  });
 
   // Generate AI response
   try {
-    const aiResponse = await aiService.generateChatResponse(message.trim());
+    const aiResponse = await aiService.chatAboutProject(
+      sessionId,
+      message.trim(),
+      { messages: session.messages }
+    );
 
     // Add AI response
-    await session.addMessage("ai", aiResponse);
+    session.messages.push({
+      role: "ai",
+      content: aiResponse,
+      timestamp: new Date(),
+    });
+
+    await session.save();
 
     res.json({
       success: true,
